@@ -9,16 +9,23 @@ integrations only. No pages, components, styling, or design work.
 
 ## Branches
 
+Backend (done, merged to `main`):
+
 ```
 main
- ├─ feature/schema-rls         (merge this one first)
- ├─ feature/matching-engine
- └─ feature/llm-integrations
+ ├─ feature/schema-rls         (merged)
+ ├─ feature/matching-engine    (merged)
+ └─ feature/llm-integrations   (merged)
 ```
 
-See [docs/build-prompt.md](docs/build-prompt.md) for the full per-branch
-build spec and [docs/schema-contract.md](docs/schema-contract.md) for the
-shared schema/RLS contract all three branches build against.
+See [docs/build-prompt.md](docs/build-prompt.md) for how the backend was
+built and [docs/schema-contract.md](docs/schema-contract.md) for the
+schema/RLS contract it implements.
+
+Frontend (not started): see
+[docs/frontend-build-prompt.md](docs/frontend-build-prompt.md) for the
+`chore/ui-shared-setup` + `feature/onboarding-ui` / `feature/queue-ui` /
+`feature/chat-ui` breakdown.
 
 ## Setup
 
@@ -43,7 +50,7 @@ noted otherwise; see `lib/supabase/verify-user.ts`.
 | `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. |
 | `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`) — reverts expired proposed matches back to `waiting`. Configured in `vercel.json`, every 5 minutes; tune against the ~90s expiry window and your Vercel plan's cron-frequency limits. |
 | `/api/onboarding/skill-normalize` | POST | Forced-tool-use call to classify a free-text experience description into a 1-5 skill tier. Below confidence 0.6, nothing is saved — the client should show a manual tier picker instead. |
-| `/api/matches/[matchId]/messages` | POST | Sends a chat message in a confirmed match, then (if the message passes a cheap keyword pre-filter) runs forced-tool-use scheduling extraction and returns a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself — a human tap on the resulting chip calls `/api/matches/[matchId]/respond`. |
+| `/api/matches/[matchId]/messages` | POST | Sends a chat message in a confirmed match, then (if the message passes a cheap keyword pre-filter) runs forced-tool-use scheduling extraction and returns a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself. There's currently no route for a human tap on the resulting chip to call — see the "backend gap" note in [docs/frontend-build-prompt.md](docs/frontend-build-prompt.md) under `feature/chat-ui`. |
 
 **`lib/courts.ts` is a placeholder list of Cornell facility names, not
 verified against the current real ones — confirm before shipping.**
