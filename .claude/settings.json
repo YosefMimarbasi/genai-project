@@ -1,0 +1,23 @@
+{
+  "extraKnownMarketplaces": {
+    "supabase-agent-skills": {
+      "source": { "source": "github", "repo": "supabase/agent-skills" }
+    },
+    "nextjs": {
+      "source": { "source": "github", "repo": "vercel/next.js" }
+    },
+    "context7-marketplace": {
+      "source": { "source": "github", "repo": "upstash/context7" }
+    }
+  },
+  "enabledPlugins": [
+    "supabase@claude-plugins-official",
+    "vercel@claude-plugins-official",
+    "typescript-lsp@claude-plugins-official",
+    "security-guidance@claude-plugins-official",
+    "commit-commands@claude-plugins-official",
+    "supabase@supabase-agent-skills",
+    "nextjs@nextjs",
+    "context7-plugin@context7-marketplace"
+  ]
+}
