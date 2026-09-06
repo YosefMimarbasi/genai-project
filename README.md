@@ -42,6 +42,11 @@ noted otherwise; see `lib/supabase/verify-user.ts`.
 | `/api/queue/ready` | POST | Join the queue and atomically match against a compatible waiting entry if one exists. |
 | `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. |
 | `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`) — reverts expired proposed matches back to `waiting`. Configured in `vercel.json`, every 5 minutes; tune against the ~90s expiry window and your Vercel plan's cron-frequency limits. |
+| `/api/onboarding/skill-normalize` | POST | Forced-tool-use call to classify a free-text experience description into a 1-5 skill tier. Below confidence 0.6, nothing is saved — the client should show a manual tier picker instead. |
+| `/api/matches/[matchId]/messages` | POST | Sends a chat message in a confirmed match, then (if the message passes a cheap keyword pre-filter) runs forced-tool-use scheduling extraction and returns a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself — a human tap on the resulting chip calls `/api/matches/[matchId]/respond`. |
+
+**`lib/courts.ts` is a placeholder list of Cornell facility names, not
+verified against the current real ones — confirm before shipping.**
 
 ## Subagents
 
