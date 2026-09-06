@@ -32,6 +32,17 @@ npm run dev
 - `npm test` — vitest (unit tests under `tests/`)
 - `npm run build` — Next.js production build
 
+## API routes
+
+All routes expect `Authorization: Bearer <supabase access token>` unless
+noted otherwise; see `lib/supabase/verify-user.ts`.
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/queue/ready` | POST | Join the queue and atomically match against a compatible waiting entry if one exists. |
+| `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. |
+| `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`) — reverts expired proposed matches back to `waiting`. Configured in `vercel.json`, every 5 minutes; tune against the ~90s expiry window and your Vercel plan's cron-frequency limits. |
+
 ## Subagents
 
 Defined under `.claude/agents/`: `schema-migrator`,
