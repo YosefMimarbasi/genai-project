@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/*
+ * Design system — Cornell Paddle Match
+ *
+ * Direction: restrained "modern tool" precision (hairline borders, minimal
+ * shadow, one confident accent — Linear/Raycast school) crossed with warmth,
+ * anchored on Cornell's own brand color rather than a borrowed identity.
+ * Light mode only for v1 — tokens are named so a dark variant can be added
+ * later without renaming call sites.
+ */
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Cornell "Big Red" as the single accent — the one deliberate brand tie. */
+  --color-accent: #b31b1b;
+  --color-accent-hover: #931614;
+  --color-accent-subtle: #fbebea;
+
+  --color-background: #fafaf8;
+  --color-surface: #ffffff;
+  --color-foreground: #171412;
+  --color-muted: #6b6560;
+  --color-border: #e5e1dc;
+
+  --color-success: #1e7a4c;
+  --color-success-subtle: #e9f5ee;
+  --color-danger: #c4463a;
+  --color-danger-subtle: #fbebea;
+  --color-warning: #a6650a;
+  --color-warning-subtle: #fbf1e2;
+
+  --radius-control: 0.5rem; /* buttons, inputs */
+  --radius-card: 0.625rem; /* cards, popovers */
+  --radius-pill: 999px; /* badges, avatars */
+
+  /* Strong custom easings — the built-in CSS ones read as sluggish.
+     See .claude/skills/emil-design-eng. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
