@@ -1,11 +1,8 @@
 # Cornell Paddle Match
 
-Backend/data layer for a Cornell paddle-sports matching app. Next.js App
-Router (deployed as Vercel Functions) + Supabase (Postgres, Auth,
-Realtime — no Edge Functions, one deploy target).
-
-Scope: route handlers, schema, RLS, matching logic, and the two LLM
-integrations only. No pages, components, styling, or design work.
+A Cornell paddle-sports matching app. Next.js App Router (deployed as
+Vercel Functions) + Supabase (Postgres, Auth, Realtime — no Edge
+Functions, one deploy target).
 
 ## Branches
 
@@ -22,10 +19,15 @@ See [docs/build-prompt.md](docs/build-prompt.md) for how the backend was
 built and [docs/schema-contract.md](docs/schema-contract.md) for the
 schema/RLS contract it implements.
 
-Frontend (not started): see
-[docs/frontend-build-prompt.md](docs/frontend-build-prompt.md) for the
-`chore/ui-shared-setup` + `feature/onboarding-ui` / `feature/queue-ui` /
-`feature/chat-ui` breakdown.
+Frontend: see [docs/frontend-build-prompt.md](docs/frontend-build-prompt.md).
+
+```
+main
+ ├─ chore/ui-shared-setup      (merged)
+ ├─ feature/onboarding-ui      (in progress)
+ ├─ feature/queue-ui           (up for grabs)
+ └─ feature/chat-ui            (up for grabs — has a small backend gap to close first, see the doc)
+```
 
 ## Setup
 
@@ -38,6 +40,30 @@ npm run dev
 - `npm run typecheck` — TypeScript, no emit
 - `npm test` — vitest (unit tests under `tests/`)
 - `npm run build` — Next.js production build
+
+## Frontend stack
+
+- **Styling**: Tailwind CSS v4 (tokens declared in `app/globals.css` —
+  Cornell Red accent, Geist type, hairline borders, restrained shadow).
+- **Auth/session**: `@supabase/ssr` — `lib/supabase/browser-client.ts`
+  (Client Components), `lib/supabase/server-client.ts` (Server
+  Components), `proxy.ts` (session refresh + redirect, Next.js 16's
+  renamed `middleware.ts`).
+- **UI primitives**: `components/ui/*` (Button via `cva`, Card,
+  TextInput and Select via `@base-ui/react`, Spinner). Toasts via
+  `sonner` (`<Toaster />` in `app/layout.tsx`, call `toast()` from
+  anywhere).
+- **Data**: `lib/api-client.ts`'s `apiFetchJson` for this repo's own API
+  routes (attaches the session's bearer token, throws a typed `ApiError`
+  on failure); read RLS-scoped tables directly via the Supabase browser
+  client. `hooks/use-realtime-channel.ts` for live Postgres-change
+  subscriptions.
+- **Design/animation guidance**: `.claude/skills/web-design-engineer`,
+  `emil-design-eng`, `apple-design`, `animate`, `pick-ui-library` — read
+  before adding UI or motion to any page.
+- Route layout: `app/(auth)/sign-in`, `app/(auth)/sign-up` (no nav
+  chrome); `app/(app)/*` (wrapped in `components/nav.tsx` via
+  `app/(app)/layout.tsx`) for everything behind sign-in.
 
 ## API routes
 
@@ -57,6 +83,9 @@ verified against the current real ones — confirm before shipping.**
 
 ## Subagents
 
-Defined under `.claude/agents/`: `schema-migrator`,
-`matching-engine-builder`, `llm-integration-builder`, `security-reviewer`
-(read-only), `test-writer`.
+Defined under `.claude/agents/`:
+
+- Backend: `schema-migrator`, `matching-engine-builder`,
+  `llm-integration-builder`
+- Frontend: `onboarding-ui-builder`, `queue-ui-builder`, `chat-ui-builder`
+- Cross-cutting: `security-reviewer` (read-only), `test-writer`

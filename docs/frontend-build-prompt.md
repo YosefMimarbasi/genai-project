@@ -8,17 +8,22 @@ split.
 
 ## How this is organized
 
-One person runs **Shared setup** once and merges it to `main` first. After
-that, three people can each check out their own branch and paste that
-branch's prompt into a separate Claude Code session, working in parallel.
+**`chore/ui-shared-setup` is done and merged to `main`.** Two more
+branches are up for grabs — check out one and paste its prompt into a
+Claude Code session.
 
 ```
 main
- ├─ chore/ui-shared-setup      (merge this one first)
- ├─ feature/onboarding-ui
- ├─ feature/queue-ui
- └─ feature/chat-ui
+ ├─ chore/ui-shared-setup      (merged)
+ ├─ feature/onboarding-ui      (in progress)
+ ├─ feature/queue-ui           (up for grabs)
+ └─ feature/chat-ui            (up for grabs)
 ```
+
+The design/animation skills used while building shared setup — and worth
+loading for these branches too — are installed under `.claude/skills/`:
+`web-design-engineer`, `emil-design-eng`, `apple-design`, `animate`,
+`pick-ui-library`.
 
 Unlike the backend split, none of these three branches are blocked
 waiting on each other's data model — the schema and every API route they
@@ -67,56 +72,75 @@ under `feature/chat-ui` below.
   them small; the three feature branches should be able to compose them
   without needing to modify them.
 
-### What to build
+### What got built (as-built, supersedes the plan above where they differ)
 
-1. `tailwind.config.ts` + the Tailwind PostCSS setup for Next.js App
-   Router.
-2. `lib/supabase/browser-client.ts` and `lib/supabase/server-client.ts`
-   (via `@supabase/ssr`'s `createBrowserClient` / `createServerClient`).
-3. `middleware.ts` — redirect unauthenticated requests to `/sign-in`.
-4. `app/sign-in/page.tsx` and `app/sign-up/page.tsx` — email/password
-   (or magic link) forms against Supabase Auth. Hint in the UI that
-   signup is Cornell-only, but don't try to re-implement the domain
-   check client-side beyond a simple format nudge — the `@cornell.edu`
-   restriction is already enforced server-side by the `auth.users`
-   trigger from `feature/schema-rls`; a rejected signup just needs a
-   readable error message surfaced from Supabase Auth's response.
-5. `app/layout.tsx` — root layout with the nav shell (app name, sign-out
-   button). Define the full nav structure now (even placeholder links to
-   `/profile`, `/play`, and a matches list) so the three feature branches
-   don't all need to edit the same nav component later.
-6. `components/ui/*` — the primitives listed above.
-7. `lib/api-client.ts` — the `apiFetch` helper.
+1. Tailwind v4 — no `tailwind.config.ts` needed (v4 auto-detects content
+   and takes tokens via the `@theme` block in `app/globals.css` instead
+   of a JS config). `postcss.config.mjs` wires in `@tailwindcss/postcss`.
+2. `lib/supabase/browser-client.ts` and `lib/supabase/server-client.ts`,
+   via `@supabase/ssr`'s current `getAll`/`setAll` cookie API (its older
+   `get`/`set`/`remove` shape is deprecated — checked against the
+   installed package's own types rather than assumed).
+3. `proxy.ts`, not `middleware.ts` — Next.js 16 renamed the convention
+   (`middleware.ts` now builds with a deprecation warning; the exported
+   function must be named `proxy`, not `middleware`). Redirects signed-out
+   requests to `/sign-in`, signed-in requests away from `/sign-in`
+   `/sign-up`.
+4. `app/(auth)/sign-in`, `app/(auth)/sign-up` — a route group with no nav
+   chrome, separate from `app/(app)/*` which gets `components/nav.tsx`
+   via `app/(app)/layout.tsx`. Sign-up does a client-side `@cornell.edu`
+   format check as a nudge (real enforcement is still the server-side
+   trigger from `feature/schema-rls`) and surfaces whatever error
+   Supabase Auth returns otherwise.
+5. `app/(app)/page.tsx` — a minimal 3-card hub (Play / Matches / Profile)
+   so there's a real landing point at `/`; not a placeholder to delete,
+   just don't expect it to grow beyond a nav hub.
+6. `components/ui/button.tsx` (variants via `cva`), `card.tsx`,
+   `text-input.tsx` and `select.tsx` (via `@base-ui/react`'s `Field` and
+   `Select`, not hand-rolled — accessible focus/dismiss/keyboard handling
+   for free), `spinner.tsx`. Toasts are `sonner`'s `<Toaster />` (wired
+   in `app/layout.tsx`) + its `toast()` function — no custom
+   `ErrorBanner`, per `pick-ui-library`'s own recommendation.
+7. `lib/api-client.ts` — `apiFetch` (raw) and `apiFetchJson` (throws a
+   typed `ApiError` on non-2xx) helpers.
 8. `hooks/use-realtime-channel.ts` — the Realtime subscription helper.
+   Requires the target table to be in the `supabase_realtime`
+   publication; added `supabase/migrations/20260906230000_enable_realtime.sql`
+   for `queue_entries`, `proposed_matches`, `confirmed_matches`,
+   `messages` — RLS still applies per-subscriber on top of that.
+9. `app/globals.css` declares the actual design system (Design Read +
+   five dials reasoning lives in the commit message): Cornell Red
+   (`#B31B1B`) as the single accent, Geist Sans/Mono (via the `geist`
+   npm package — Vercel's own type, a natural fit for a Vercel-hosted
+   app), warm off-white background, hairline borders over shadow,
+   custom `ease-out`/`ease-in-out` curves per `emil-design-eng`.
+10. `motion` (npm: `motion`, formerly Framer Motion) installed but not
+    yet used anywhere — reach for it only for springs/gestures/layout
+    animation; plain CSS transitions cover buttons, cards, and popups
+    (see `components/ui/select.tsx`'s origin-aware popup transition for
+    the pattern).
 
-### Create three subagents under `.claude/agents/`
+Verified: `npm run typecheck`, `npm run build`, and a real dev-server
+pass in a browser (sign-in redirect, sign-up form + validation, hover/
+focus/press states) — not just "it compiles." No live Supabase project in
+this environment, so auth calls themselves weren't exercised end-to-end;
+placeholder env values were enough to verify rendering and client-side
+logic.
 
-Mirrors the backend pattern — commit all three now so every branch's
-`.claude/agents/` stays in sync.
+### Three subagents under `.claude/agents/` (done)
 
-1. **`onboarding-ui-builder`** — profile/onboarding page. Tools: Read,
-   Write, Edit, Bash. Model: default.
-2. **`queue-ui-builder`** — ready-up form, waiting screen, proposed-match
-   accept/decline screen. Tools: Read, Write, Edit, Bash. Model: default.
-3. **`chat-ui-builder`** — confirmed-match chat screen and the
-   schedule-confirmation flow, including the one new backend route this
-   branch needs (see below). Tools: Read, Write, Edit, Bash. Model:
-   default.
+`onboarding-ui-builder`, `queue-ui-builder`, `chat-ui-builder` — full
+system prompts, not one-liners. `security-reviewer` and `test-writer`
+from the backend work are reused as-is; their job here is smaller (no
+service-role key in client code, no form trusting a client-supplied user
+id, Realtime scoped to the signed-in user's own rows) but the roles are
+the same. UI tests are lower-stakes than the backend's RLS/race-condition
+tests — a manual pass via the `/run` skill is enough unless a contributor
+wants Playwright/RTL as a stretch goal.
 
-Reuse the existing `security-reviewer` (read-only) and `test-writer`
-subagents from the backend work rather than creating new ones — their
-job here is smaller (no service-role key ever reaches client code, no
-form trusts a client-supplied user id where the session should be used
-instead, Realtime subscriptions are scoped to the signed-in user's own
-rows) but the roles are the same. UI tests are lower-stakes than the
-backend's RLS/race-condition tests; a quick manual pass with the `/run`
-skill is enough unless a contributor wants to add Playwright/RTL as a
-stretch goal — don't block on it.
-
-Write a full system prompt for each new subagent — don't just copy the
-one-line descriptions above into the prompt field. Restart the session
-after creating these before continuing, since `.claude/agents/` only
-loads at session start.
+**Restart your session before starting a feature branch** — `.claude/agents/`
+only loads at session start, so a session opened before this merged won't
+see the three new subagents.
 
 **Plugins this branch leans on most:** `vercel@claude-plugins-official`,
 `nextjs@nextjs`, `typescript-lsp`, `security-guidance`. The `supabase`
