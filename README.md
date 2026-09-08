@@ -24,7 +24,7 @@ Frontend: see [docs/frontend-build-prompt.md](docs/frontend-build-prompt.md).
 ```
 main
  ├─ chore/ui-shared-setup      (merged)
- ├─ feature/onboarding-ui      (in progress)
+ ├─ feature/onboarding-ui      (PR open — awaiting review)
  ├─ feature/queue-ui           (up for grabs)
  └─ feature/chat-ui            (up for grabs — has a small backend gap to close first, see the doc)
 ```
