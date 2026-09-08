@@ -1,7 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/sign-in", "/sign-up"];
+/** Auth pages — a signed-in user has no reason to be here. */
+const AUTH_PATHS = ["/sign-in", "/sign-up"];
+
+/** The public marketing page. Exact match: "/" is a prefix of everything. */
+const LANDING_PATH = "/";
+
+/**
+ * Readable without an account. The privacy policy in particular has to be
+ * reachable *before* someone hands over an email address.
+ */
+const PUBLIC_PATHS = ["/privacy", "/terms", "/accessibility"];
+
+/** Where a signed-in user lands. */
+const APP_HOME = "/play";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -31,14 +44,19 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublicPath = PUBLIC_PATHS.some((path) => request.nextUrl.pathname.startsWith(path));
+  const { pathname } = request.nextUrl;
+  const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
+  const isLanding = pathname === LANDING_PATH;
+  const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
-  if (!user && !isPublicPath) {
+  if (!user && !isAuthPath && !isLanding && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
-  if (user && isPublicPath) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Signed in: skip the marketing page and the auth pages entirely. Legal
+  // pages stay readable either way.
+  if (user && (isAuthPath || isLanding)) {
+    return NextResponse.redirect(new URL(APP_HOME, request.url));
   }
 
   return response;

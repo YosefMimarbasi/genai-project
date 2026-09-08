@@ -3,53 +3,37 @@
 /*
  * Design system — Cornell Paddle Match
  *
- * Direction: restrained "modern tool" precision (hairline borders, minimal
- * shadow, one confident accent — Linear/Raycast school) crossed with warmth,
- * anchored on Cornell's own brand color rather than a borrowed identity.
- * Light mode only for v1 — tokens are named so a dark variant can be added
- * later without renaming call sites.
+ * Anchor recipe: `pentagram` (Pentagram / Paula Scher) from
+ * .claude/skills/web-design-engineer/references/style-recipes/pentagram.md
+ *
+ * Type does the visual work; everything else recedes. The recipe's
+ * "brick on bone" pairing is instantiated with Cornell's real Big Red
+ * (#b31b1b) as the ink accent, so the identity is Cornell's rather than
+ * a borrowed one. Radius 0, no shadow, no gradient, no photography —
+ * all per the recipe's Avoid list.
  */
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-archivo), ui-sans-serif, sans-serif;
 
-  /* Cornell "Big Red" as the single accent — the one deliberate brand tie. */
-  --color-accent: #b31b1b;
-  --color-accent-hover: #931614;
-  --color-accent-subtle: #fbebea;
+  /* Ink + ground + ONE accent. Do not add a fifth hue — the restriction
+     is the recipe (see INDEX.md cross-cutting anti-patterns). */
+  --color-accent: #b31b1b; /* Cornell Big Red */
+  --color-accent-hover: #8f1616;
+  --color-ground: #efe9dc; /* bone */
+  --color-paper: #f7f5ef; /* raised surfaces */
+  --color-ink: #141210;
+  --color-gray: #6e6862;
+  --color-rule: #141210; /* used at low alpha for hairlines */
 
-  --color-background: #fafaf8;
-  --color-surface: #ffffff;
-  --color-foreground: #171412;
-  --color-muted: #6b6560;
-  --color-border: #e5e1dc;
+  /* Status — desaturated to sit inside the bone/ink world rather than
+     introducing candy hues. */
+  --color-success: #1e6b45;
+  --color-danger: #b31b1b;
 
-  --color-success: #1e7a4c;
-  --color-success-subtle: #e9f5ee;
-  --color-danger: #c4463a;
-  --color-danger-subtle: #fbebea;
-  --color-warning: #a6650a;
-  --color-warning-subtle: #fbf1e2;
-
-  --radius-control: 0.5rem; /* buttons, inputs */
-  --radius-card: 0.625rem; /* cards, popovers */
-  --radius-pill: 999px; /* badges, avatars */
-
-  /* Strong custom easings — the built-in CSS ones read as sluggish.
-     See .claude/skills/emil-design-eng. */
+  /* Strong custom easings — built-in CSS easings read as sluggish.
+     See .claude/skills/animate and emil-design-eng. */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 html {
@@ -57,7 +41,100 @@ html {
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--color-ground);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1; /* tabular figures — recipe: numerals from the same family */
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+
+/*
+ * Tracking is size-specific, never one value for every size
+ * (apple-design §15): large display type reads too loose as it grows and
+ * wants negative tracking; small labels want a positive bump.
+ */
+.display {
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+.display-sm {
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+}
+
+.label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.6875rem;
+}
+
+/* The 1px rule drawn across a whole block — recipe signature move. */
+.rule {
+  border-top: 1px solid color-mix(in oklab, var(--color-rule) 18%, transparent);
+}
+
+/*
+ * Hero entrance. Typographic only — letters/lines rise onto the baseline.
+ * No parallax, no 3D, no bounce (recipe: "typographic moves only").
+ * This is the rare/first-time tier, which is where the delight budget
+ * lives (see .claude/skills/animate step 1).
+ */
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: rise 520ms var(--ease-out-strong) forwards;
+}
+
+/* Stagger stays in the 30–80ms band — longer delays read as slow. */
+.rise-1 {
+  animation-delay: 0ms;
+}
+.rise-2 {
+  animation-delay: 60ms;
+}
+.rise-3 {
+  animation-delay: 120ms;
+}
+.rise-4 {
+  animation-delay: 180ms;
+}
+.rise-5 {
+  animation-delay: 240ms;
+}
+
+/*
+ * Reduced motion means fewer and gentler animations, not zero — keep the
+ * opacity fade that aids comprehension, drop the positional movement.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    transform: none;
+    animation-duration: 200ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ground);
 }

@@ -1,4 +1,4 @@
-# Cornell Paddle Match — frontend build prompts (parallel branches)
+# Cornell Racket Queue — frontend build prompts (parallel branches)
 
 The backend is done and merged to `main` (see [docs/build-prompt.md](build-prompt.md)
 for how it was built, and the root [README.md](../README.md) for the API
