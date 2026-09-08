@@ -71,7 +71,7 @@ export const VENUES: Record<Sport, readonly Venue[]> = {
     {
       name: "Helen Newman",
       access: "open",
-      hours: "Tue · Thu · Sat, and Fri on odd-numbered dates",
+      hours: "Tue, Thu, Sat (+ odd-dated Fri)",
     },
     { name: "Noyes", access: "open", hours: "Sat 10am–2pm" },
   ],

@@ -15,7 +15,7 @@ const LEGAL_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="neu-raised mt-auto rounded-t-[var(--radius-lg)]">
+    <footer className="neu-e2 mx-auto mb-4 mt-10 w-full max-w-6xl rounded-[var(--radius-lg)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <span className="wordmark text-[var(--color-ink)]">Cornell Racket Queue</span>

@@ -32,7 +32,7 @@ const buttonVariants = cva(
           "active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]",
         ],
         secondary: [
-          "neu-raised text-[var(--color-ink)]",
+          "neu-e2 text-[var(--color-ink)]",
           "hover:text-[var(--color-accent)]",
           "active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
         ],

@@ -73,7 +73,7 @@ function Chip({
         "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
         selected
           ? "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]"
-          : "neu-raised-sm text-[var(--color-ink)] hover:text-[var(--color-accent)]"
+          : "neu-e1 text-[var(--color-ink)] hover:text-[var(--color-accent)]"
       )}
     >
       {children}
@@ -192,7 +192,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
 
         <CourtDiagram
           sport={sport}
-          className="mt-12 w-full max-w-2xl text-[color-mix(in_oklab,var(--color-ink)_30%,transparent)]"
+          className="neu-engraved mt-12 w-full max-w-2xl text-[color-mix(in_oklab,var(--color-ink)_30%,transparent)]"
         />
 
         <Button

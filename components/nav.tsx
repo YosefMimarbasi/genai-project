@@ -34,8 +34,8 @@ export function Nav() {
   }
 
   return (
-    <header className="neu-raised sticky top-0 z-40 rounded-b-[var(--radius-lg)]">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+    <header className="neu-e2 mx-auto mt-4 max-w-6xl rounded-[var(--radius-lg)]">
+      <div className="flex h-14 items-center justify-between px-5">
         <Link href="/play" className="wordmark text-[var(--color-ink)]">
           Cornell Racket Queue
         </Link>

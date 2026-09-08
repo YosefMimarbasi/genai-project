@@ -10,8 +10,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="neu-raised rounded-b-[var(--radius-lg)]">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+      <header className="neu-e2 mx-auto mt-4 w-full max-w-6xl rounded-[var(--radius-lg)]">
+        <div className="flex h-14 items-center justify-between px-5">
           <Link href="/" className="wordmark text-[var(--color-ink)]">
             Cornell Racket Queue
           </Link>

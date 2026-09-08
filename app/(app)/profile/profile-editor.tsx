@@ -49,7 +49,7 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
                   "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
                   activeSport === sport
                     ? "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]"
-                    : "neu-raised-sm hover:text-[var(--color-accent)]"
+                    : "neu-e1 hover:text-[var(--color-accent)]"
                 )}
               >
                 {sport}

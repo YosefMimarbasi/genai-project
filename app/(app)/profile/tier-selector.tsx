@@ -40,7 +40,7 @@ export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) 
                 selected &&
                   !confirmed &&
                   "neu-pressed text-[var(--color-accent)] ring-2 ring-[var(--color-accent)]",
-                !selected && "neu-raised-sm text-[var(--color-ink)] hover:text-[var(--color-accent)]"
+                !selected && "neu-e1 text-[var(--color-ink)] hover:text-[var(--color-accent)]"
               )}
             >
               {tier}

@@ -56,7 +56,8 @@ export default function SignInPage() {
         </Button>
       </form>
 
-      <p className="mt-8 pt-5 text-sm text-[var(--color-gray)]">
+      <div className="neu-groove mt-8" aria-hidden />
+      <p className="mt-5 text-sm text-[var(--color-gray)]">
         New here?{" "}
         <Link href="/sign-up" className="font-bold text-[var(--color-accent)] hover:underline">
           Create an account

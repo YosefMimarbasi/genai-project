@@ -41,7 +41,7 @@ export default async function MatchesPage() {
             <li key={match.id}>
               <Link
                 href={`/matches/${match.id}`}
-                className="group grid items-baseline gap-2 py-6 transition-colors duration-150  sm:grid-cols-[1fr_auto] sm:gap-6"
+                className="neu-e1 neu-lift group mb-3 grid items-baseline gap-2 rounded-[var(--radius-lg)] px-5 py-5 sm:grid-cols-[1fr_auto] sm:gap-6"
               >
                 <span className="text-lg font-bold tracking-[-0.015em] group-hover:text-[var(--color-accent)]">
                   {match.agreed_location}

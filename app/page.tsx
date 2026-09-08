@@ -76,8 +76,8 @@ function SectionMark({ n, title }: { n: string; title: string }) {
 export default function LandingPage() {
   return (
     <div className="min-h-dvh">
-      <header className="neu-raised rounded-b-[var(--radius-lg)]">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+      <header className="neu-e2 mx-auto mt-4 max-w-6xl rounded-[var(--radius-lg)]">
+        <div className="flex h-14 items-center justify-between px-5">
           <span className="wordmark text-[var(--color-ink)]">Cornell Racket Queue</span>
           <div className="flex items-center gap-5">
             <ThemeToggle />
@@ -118,12 +118,12 @@ export default function LandingPage() {
                 {/* Label matches the outcome. "Ready up" is the in-app
                     action for joining the queue, so using it for signup
                     promises something this button doesn't do. */}
-                <span className="inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent)] px-8 text-base font-semibold text-white shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)] transition-[transform,box-shadow,background-color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-accent-hover)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]">
+                <span className="inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent)] px-8 text-base font-semibold text-white shadow-[9px_9px_22px_var(--neu-dark),-9px_-9px_22px_var(--neu-light)] transition-[transform,box-shadow,background-color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-accent-hover)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]">
                   Create an account
                 </span>
               </Link>
               <Link href="/sign-in">
-                <span className="neu-raised inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] px-8 text-base font-semibold text-[var(--color-ink)] transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)] hover:text-[var(--color-accent)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]">
+                <span className="neu-e2 inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] px-8 text-base font-semibold text-[var(--color-ink)] transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)] hover:text-[var(--color-accent)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]">
                   Sign in
                 </span>
               </Link>
@@ -136,7 +136,7 @@ export default function LandingPage() {
           <SectionMark n="01" title="How it works" />
           <div className="mt-10 grid gap-5 sm:grid-cols-3">
             {STEPS.map((step) => (
-              <div key={step.n} className="neu-raised rounded-[var(--radius-lg)] p-6">
+              <div key={step.n} className="neu-e2 neu-lift rounded-[var(--radius-lg)] p-6">
                 <span className="label text-[var(--color-accent)]">{step.n}</span>
                 <h3 className="mt-3 text-xl font-bold tracking-[-0.015em]">{step.title}</h3>
                 <p className="mt-2 max-w-[38ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
@@ -152,21 +152,21 @@ export default function LandingPage() {
           <SectionMark n="02" title="Where you play" />
           <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SPORTS.map((sport) => (
-              <li key={sport} className="neu-raised group flex flex-col rounded-[var(--radius-lg)] p-6">
+              <li key={sport} className="neu-e2 neu-lift group flex flex-col rounded-[var(--radius-lg)] p-6">
                 <div className="flex items-baseline justify-between gap-4">
                   <h3 className="text-lg font-bold tracking-[-0.015em]">{sport}</h3>
                   <span className="label text-[var(--color-gray)]">{courtDimensions(sport)}</span>
                 </div>
                 <CourtDiagram
                   sport={sport}
-                  className="mt-5 w-full text-[color-mix(in_oklab,var(--color-ink)_55%,transparent)] transition-colors duration-200 ease-[var(--ease-out-strong)] group-hover:text-[var(--color-accent)]"
+                  className="neu-engraved mt-5 w-full text-[color-mix(in_oklab,var(--color-ink)_45%,transparent)] transition-colors duration-200 ease-[var(--ease-out-strong)] group-hover:text-[var(--color-accent)]"
                 />
                 <VenueList sport={sport} />
               </li>
             ))}
             {/* Spans the remaining column so the grid has no empty cell —
                 an unfilled cell shows the gap colour and reads as a bug. */}
-            <li className="neu-raised flex flex-col justify-end rounded-[var(--radius-lg)] p-6 lg:col-span-2">
+            <li className="neu-e2 flex flex-col justify-end rounded-[var(--radius-lg)] p-6 lg:col-span-2">
               <div className="grid gap-6 sm:grid-cols-2">
                 <p className="max-w-[32ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
                   No bookings. Every court above is first come, first served, though PE and intramural
@@ -198,11 +198,11 @@ export default function LandingPage() {
             Describe how you play in a sentence and you get a suggested tier. You can override it.
             Nothing is saved to your profile without you confirming it.
           </p>
-          <dl className="mt-8">
+          <dl className="neu-e2 mt-8 divide-y divide-transparent rounded-[var(--radius-lg)] px-6 py-2">
             {TIERS.map((tier) => (
               <div
                 key={tier}
-                className="flex items-baseline gap-5 py-4  sm:gap-8"
+                className="flex items-baseline gap-5 py-5 not-first:border-t not-first:border-[var(--neu-dark)]/50 sm:gap-8"
               >
                 <dt className="display-sm w-10 shrink-0 text-[2rem] text-[var(--color-accent)] sm:w-14 sm:text-[2.75rem]">
                   {tier}

@@ -135,7 +135,7 @@ export function Chat({
                       "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
                       mine
                         ? "bg-[var(--color-accent)] text-white shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)]"
-                        : "neu-raised-sm"
+                        : "neu-e1"
                     )}
                   >
                     {message.content}
@@ -148,7 +148,7 @@ export function Chat({
       </div>
 
       {suggestion?.hasProposal ? (
-        <div className="neu-raised mb-4 rounded-[var(--radius-lg)] p-4">
+        <div className="neu-e2 mb-4 rounded-[var(--radius-lg)] p-4">
           <p className="label text-[var(--color-accent)]">Detected in that message</p>
           <p className="mt-2 text-[0.9375rem] font-bold">
             {[suggestion.date, suggestion.time, suggestion.court].filter(Boolean).join(" · ")}

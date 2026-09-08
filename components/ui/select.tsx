@@ -41,7 +41,7 @@ export function Select({
       >
         <BaseSelect.Trigger
           className={cn(
-            "neu-raised flex h-12 items-center justify-between gap-2",
+            "neu-e2 flex h-12 items-center justify-between gap-2",
             "rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-ink)]",
             "transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)]",
             "active:scale-[0.99]",
@@ -56,7 +56,8 @@ export function Select({
           <BaseSelect.Positioner sideOffset={10} className="z-50">
             <BaseSelect.Popup
               className={cn(
-                "neu-raised min-w-[var(--anchor-width)] overflow-hidden",
+                // Floats above everything else, so it takes the top tier.
+                "neu-e3 min-w-[var(--anchor-width)] overflow-hidden",
                 "rounded-[var(--radius-md)] p-2",
                 "origin-[var(--transform-origin)]",
                 "transition-[transform,opacity] duration-[180ms] ease-[var(--ease-out-strong)]",

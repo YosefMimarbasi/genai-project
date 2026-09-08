@@ -121,20 +121,35 @@ body {
  * be retuned in one place.
  * ---------------------------------------------------------------- */
 
-/** Raised: sits above the ground. Buttons, cards, the nav bar. */
-.neu-raised {
+/*
+ * An elevation scale, not one shadow reused everywhere. Height is the only
+ * hierarchy this style has: if every surface sits at the same altitude,
+ * nothing reads as primary and the page flattens out. Roles, low to high:
+ *
+ *   e1  dense controls — chips, tier squares, message bubbles
+ *   e2  content surfaces — cards, nav, footer
+ *   e3  the thing you're meant to act on or read — primary CTA, popovers,
+ *       a long document's sheet
+ */
+.neu-e1 {
+  background: var(--color-paper);
+  box-shadow:
+    3px 3px 7px var(--neu-dark),
+    -3px -3px 7px var(--neu-light);
+}
+
+.neu-e2 {
   background: var(--color-paper);
   box-shadow:
     5px 5px 12px var(--neu-dark),
     -5px -5px 12px var(--neu-light);
 }
 
-/** A smaller extrusion for dense controls (chips, tier squares). */
-.neu-raised-sm {
+.neu-e3 {
   background: var(--color-paper);
   box-shadow:
-    3px 3px 7px var(--neu-dark),
-    -3px -3px 7px var(--neu-light);
+    9px 9px 22px var(--neu-dark),
+    -9px -9px 22px var(--neu-light);
 }
 
 /** Pressed / carved into the ground. Inputs, wells, active toggles. */
@@ -143,6 +158,34 @@ body {
   box-shadow:
     inset 3px 3px 7px var(--neu-dark),
     inset -3px -3px 7px var(--neu-light);
+}
+
+/*
+ * A raised surface that never reacts feels like a photograph of a button.
+ * Lift on hover, and only on real pointers — touch fires hover on tap.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .neu-lift {
+    transition:
+      box-shadow 220ms var(--ease-out-strong),
+      transform 220ms var(--ease-out-strong);
+  }
+
+  .neu-lift:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      9px 9px 22px var(--neu-dark),
+      -9px -9px 22px var(--neu-light);
+  }
+}
+
+/*
+ * Engraved line art. A hard 1px stroke is the one sharp thing left inside
+ * a soft system; a light lower-right offset makes the line read as cut
+ * into the surface rather than drawn on top of it.
+ */
+.neu-engraved {
+  filter: drop-shadow(1px 1px 0 var(--neu-light));
 }
 
 /**
@@ -165,8 +208,9 @@ body {
  * entirely and real borders take over.
  */
 @media (forced-colors: active) {
-  .neu-raised,
-  .neu-raised-sm,
+  .neu-e1,
+  .neu-e2,
+  .neu-e3,
   .neu-pressed {
     box-shadow: none;
     border: 1px solid CanvasText;
