@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/app/(legal)/legal-prose";
 
 /*
  * Legal links belong in the footer of every page (the universal standard),
@@ -14,10 +15,10 @@ const LEGAL_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)]">
+    <footer className="neu-raised mt-auto rounded-t-[var(--radius-lg)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="label text-[var(--color-ink)]">Cornell Racket Queue</span>
+          <span className="wordmark text-[var(--color-ink)]">Cornell Racket Queue</span>
           <nav className="flex flex-wrap gap-5">
             {LEGAL_LINKS.map((link) => (
               <Link
@@ -28,6 +29,12 @@ export function SiteFooter() {
                 {link.label}
               </Link>
             ))}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
+            >
+              Contact
+            </a>
           </nav>
         </div>
 

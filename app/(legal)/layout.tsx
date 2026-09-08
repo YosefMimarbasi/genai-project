@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /*
  * Legal pages are public: someone must be able to read the privacy policy
@@ -9,17 +10,20 @@ import { SiteFooter } from "@/components/site-footer";
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)]">
+      <header className="neu-raised rounded-b-[var(--radius-lg)]">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
-          <Link href="/" className="label text-[var(--color-ink)]">
+          <Link href="/" className="wordmark text-[var(--color-ink)]">
             Cornell Racket Queue
           </Link>
-          <Link
-            href="/"
-            className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
-          >
-            Back
-          </Link>
+          <div className="flex items-center gap-5">
+            <ThemeToggle />
+            <Link
+              href="/"
+              className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </header>
 

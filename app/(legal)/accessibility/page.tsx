@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LegalPage, Section, List, Fill } from "../legal-prose";
+import { LegalPage, Section, List, ContactEmail } from "../legal-prose";
 
 export const metadata: Metadata = {
   title: "Accessibility | Cornell Racket Queue",
@@ -47,7 +47,7 @@ export default function AccessibilityPage() {
 
       <Section heading="Telling us about a problem">
         <p>
-          If something here blocks you, email <Fill>[contact email]</Fill> and describe what you
+          If something here blocks you, email <ContactEmail /> and describe what you
           were trying to do and what got in the way. We will reply and tell you what we can fix and
           when. If you need something the app cannot currently do, say so and we will find another
           way to get it done.

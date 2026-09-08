@@ -19,6 +19,12 @@
       "skillPath": "skills/emil-design-eng/SKILL.md",
       "computedHash": "87067d79205fdedc6d682891027dd9c7335486c4b4dc2e785638941a9d2e6061"
     },
+    "neumorphism": {
+      "source": "bergside/awesome-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/neumorphism/SKILL.md",
+      "computedHash": "fc3bea6768df19dd9dc16242965fecd2b03cea6965eb89a2a12cd9ecba699573"
+    },
     "pick-ui-library": {
       "source": "emilkowalski/skill",
       "sourceType": "github",

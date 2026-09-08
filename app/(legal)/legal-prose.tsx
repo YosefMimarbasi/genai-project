@@ -23,9 +23,11 @@ export function LegalPage({
 
 export function Section({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-6">
+    <section className="pt-6">
       <h2 className="text-lg font-bold tracking-[-0.015em]">{heading}</h2>
-      <div className="mt-3 flex flex-col gap-3 text-[0.9375rem] leading-[1.6] text-[var(--color-gray)]">
+      {/* Long-form policy text is the one place a reading serif earns its
+          place, which is the role Cornell gives Freight Text. */}
+      <div className="prose-serif mt-3 flex flex-col gap-3 text-base leading-[1.65] text-[var(--color-gray)]">
         {children}
       </div>
     </section>
@@ -44,11 +46,16 @@ export function List({ items }: { items: React.ReactNode[] }) {
   );
 }
 
-/** Marks a value only the operator can supply, so it can't ship unnoticed. */
-export function Fill({ children }: { children: React.ReactNode }) {
+/** Single source of truth for the contact address across all legal pages. */
+export const CONTACT_EMAIL = "ym583@cornell.edu";
+
+export function ContactEmail() {
   return (
-    <mark className="bg-[var(--color-accent)] px-1 font-bold text-[var(--color-ground)]">
-      {children}
-    </mark>
+    <a
+      href={`mailto:${CONTACT_EMAIL}`}
+      className="font-bold text-[var(--color-accent)] hover:underline"
+    >
+      {CONTACT_EMAIL}
+    </a>
   );
 }

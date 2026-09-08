@@ -3,6 +3,12 @@
 import { Field } from "@base-ui/react/field";
 import { cn } from "@/lib/cn";
 
+/*
+ * Inputs are carved into the ground rather than raised: a well reads as
+ * something you put content into. The error state adds a red ring on top
+ * of the inset, because a shadow change alone is not a perceivable error
+ * signal.
+ */
 export interface TextInputProps
   extends Omit<React.ComponentPropsWithoutRef<typeof Field.Control>, "className"> {
   label: string;
@@ -12,11 +18,6 @@ export interface TextInputProps
   inputClassName?: string;
 }
 
-/*
- * Label set in the tiny precise uppercase used for all metadata in this
- * system — the recipe pins captions and field labels to the grid in small
- * type rather than making them compete with content.
- */
 export function TextInput({
   label,
   hint,
@@ -30,18 +31,17 @@ export function TextInput({
       <Field.Label className="label text-[var(--color-gray)]">{label}</Field.Label>
       <Field.Control
         className={cn(
-          "h-11 border bg-[var(--color-paper)] px-3 text-sm text-[var(--color-ink)]",
-          "outline-none transition-colors duration-150 ease-[var(--ease-out-strong)]",
-          "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)]",
-          "focus:border-[var(--color-accent)]",
+          "neu-pressed h-12 rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-ink)]",
+          "outline-none transition-shadow duration-150 ease-[var(--ease-out-strong)]",
           "placeholder:text-[color-mix(in_oklab,var(--color-gray)_70%,transparent)]",
-          error && "border-[var(--color-danger)]",
+          "focus:ring-2 focus:ring-[var(--color-accent)]",
+          error && "ring-2 ring-[var(--color-danger)]",
           inputClassName
         )}
         {...props}
       />
       {hint && !error ? <p className="text-xs text-[var(--color-gray)]">{hint}</p> : null}
-      <Field.Error match={Boolean(error)} className="text-xs font-medium text-[var(--color-danger)]">
+      <Field.Error match={Boolean(error)} className="text-xs font-semibold text-[var(--color-danger)]">
         {error}
       </Field.Error>
     </Field.Root>

@@ -24,7 +24,7 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
 
   return (
     <section className="py-6">
-      <h1 className="display -ml-[0.045em] text-[clamp(2.75rem,8vw,6rem)]">
+      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
         What do
         <br />
         you play?
@@ -33,7 +33,7 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
         Add the sports you play so we can match you with someone at your level.
       </p>
 
-      <div className="mt-12 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-8">
+      <div className="mt-12 pt-8">
         {addedSports.length > 0 ? (
           <div className="mb-8 flex flex-wrap gap-2">
             {addedSports.map((sport) => (
@@ -43,13 +43,13 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
                 onClick={() => setActiveSport(sport)}
                 aria-pressed={activeSport === sport}
                 className={cn(
-                  "flex items-center gap-2 border px-4 py-2 text-sm font-bold",
-                  "transition-[transform,background-color,border-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
-                  "active:scale-[0.97]",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]",
+                  "flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold",
+                  "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
+                  "active:scale-[0.98]",
+                  "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
                   activeSport === sport
-                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-ground)]"
-                    : "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)] hover:border-[var(--color-ink)]"
+                    ? "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]"
+                    : "neu-raised-sm hover:text-[var(--color-accent)]"
                 )}
               >
                 {sport}

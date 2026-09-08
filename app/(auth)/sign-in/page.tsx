@@ -56,7 +56,7 @@ export default function SignInPage() {
         </Button>
       </form>
 
-      <p className="mt-8 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-5 text-sm text-[var(--color-gray)]">
+      <p className="mt-8 pt-5 text-sm text-[var(--color-gray)]">
         New here?{" "}
         <Link href="/sign-up" className="font-bold text-[var(--color-accent)] hover:underline">
           Create an account

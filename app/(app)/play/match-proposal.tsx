@@ -82,7 +82,7 @@ export function MatchProposal({
   if (waitingOnThem) {
     return (
       <section className="py-10">
-        <h1 className="display -ml-[0.045em] text-[clamp(2.75rem,8vw,6rem)]">
+        <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
           Waiting on
           <br />
           them.
@@ -110,9 +110,9 @@ export function MatchProposal({
         animation so it stays smooth while the page is busy. Draining to
         zero is a measurement, not an entrance, so scaleX(0) is correct here.
       */}
-      <div className="mt-2 h-1 w-full overflow-hidden bg-[color-mix(in_oklab,var(--color-rule)_15%,transparent)]">
+      <div className="neu-pressed mt-4 h-3 w-full overflow-hidden rounded-[var(--radius-pill)]">
         <div
-          className="h-full origin-left bg-[var(--color-accent)] motion-reduce:hidden"
+          className="h-full origin-left rounded-[var(--radius-pill)] bg-[var(--color-accent)] motion-reduce:hidden"
           style={{ animation: `drain ${WINDOW_SECONDS}s linear forwards` }}
         />
       </div>
@@ -123,7 +123,7 @@ export function MatchProposal({
         declines or runs out the clock, you both go back in the queue.
       </p>
 
-      <div className="mt-10 flex flex-wrap gap-3 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-8">
+      <div className="mt-10 flex flex-wrap gap-3 pt-8">
         <Button
           size="lg"
           loading={submitting === "accepted"}

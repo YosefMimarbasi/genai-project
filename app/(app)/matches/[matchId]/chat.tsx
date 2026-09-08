@@ -105,7 +105,7 @@ export function Chat({
 
   return (
     <section className="flex min-h-[calc(100dvh-8.5rem)] flex-col py-6">
-      <header className="border-b border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pb-6">
+      <header className="pb-6">
         <Link href="/matches" className="label text-[var(--color-gray)] hover:text-[var(--color-ink)]">
           All matches
         </Link>
@@ -132,10 +132,10 @@ export function Chat({
                   </span>
                   <p
                     className={cn(
-                      "max-w-[46ch] border px-4 py-2.5 text-[0.9375rem] leading-[1.5]",
+                      "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
                       mine
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-ground)]"
-                        : "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)] bg-[var(--color-paper)]"
+                        ? "bg-[var(--color-accent)] text-white shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)]"
+                        : "neu-raised-sm"
                     )}
                   >
                     {message.content}
@@ -148,7 +148,7 @@ export function Chat({
       </div>
 
       {suggestion?.hasProposal ? (
-        <div className="mb-4 border border-[var(--color-ink)] bg-[var(--color-paper)] p-4">
+        <div className="neu-raised mb-4 rounded-[var(--radius-lg)] p-4">
           <p className="label text-[var(--color-accent)]">Detected in that message</p>
           <p className="mt-2 text-[0.9375rem] font-bold">
             {[suggestion.date, suggestion.time, suggestion.court].filter(Boolean).join(" · ")}
@@ -166,20 +166,16 @@ export function Chat({
         </div>
       ) : null}
 
-      <form
-        onSubmit={handleSend}
-        className="flex gap-3 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-5"
-      >
+      <form onSubmit={handleSend} className="flex gap-3 pt-5">
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Say when works…"
           aria-label="Message"
           className={cn(
-            "h-11 flex-1 border bg-[var(--color-paper)] px-3 text-sm text-[var(--color-ink)]",
-            "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)]",
-            "outline-none transition-colors duration-150 ease-[var(--ease-out-strong)]",
-            "focus:border-[var(--color-accent)]",
+            "neu-pressed h-12 flex-1 rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-ink)]",
+            "outline-none transition-shadow duration-150 ease-[var(--ease-out-strong)]",
+            "focus:ring-2 focus:ring-[var(--color-accent)]",
             "placeholder:text-[color-mix(in_oklab,var(--color-gray)_70%,transparent)]"
           )}
         />

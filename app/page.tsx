@@ -3,6 +3,7 @@ import { CourtDiagram, courtDimensions } from "@/components/court-diagram";
 import { SPORTS, TIERS, TIER_LABELS, type Sport } from "@/lib/sports";
 import { VENUES, queueableVenues, reservationVenues } from "@/lib/courts";
 import { SiteFooter } from "@/components/site-footer";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /*
  * Public landing page. Type is the only graphic — no photography, no
@@ -60,15 +61,14 @@ function VenueList({ sport }: { sport: Sport }) {
 
 function SectionMark({ n, title }: { n: string; title: string }) {
   return (
-    <div className="flex items-stretch">
-      <div className="flex w-20 shrink-0 items-end justify-center bg-[var(--color-accent)] px-2 pb-1 pt-6 sm:w-28">
-        <span className="display-sm text-[3rem] leading-none text-[var(--color-ground)] sm:text-[4.5rem]">
-          {n}
-        </span>
-      </div>
-      <div className="flex items-end border-b border-l-0 border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pb-3 pl-4 sm:pl-6">
-        <h2 className="display-sm text-[1.75rem] sm:text-[2.5rem]">{title}</h2>
-      </div>
+    <div className="flex items-center gap-5">
+      <span
+        aria-hidden
+        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-accent)] text-white shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)] sm:h-20 sm:w-20"
+      >
+        <span className="display-sm text-[2rem] leading-none sm:text-[2.5rem]">{n}</span>
+      </span>
+      <h2 className="display-sm text-[1.75rem] sm:text-[2.5rem]">{title}</h2>
     </div>
   );
 }
@@ -76,15 +76,18 @@ function SectionMark({ n, title }: { n: string; title: string }) {
 export default function LandingPage() {
   return (
     <div className="min-h-dvh">
-      <header className="rule border-t-0 border-b border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)]">
+      <header className="neu-raised rounded-b-[var(--radius-lg)]">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
-          <span className="label text-[var(--color-ink)]">Cornell Racket Queue</span>
-          <Link
-            href="/sign-in"
-            className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
-          >
-            Sign in
-          </Link>
+          <span className="wordmark text-[var(--color-ink)]">Cornell Racket Queue</span>
+          <div className="flex items-center gap-5">
+            <ThemeToggle />
+            <Link
+              href="/sign-in"
+              className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
+            >
+              Sign in
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -95,9 +98,10 @@ export default function LandingPage() {
             Ithaca, NY
           </p>
 
-          {/* Optical alignment: the cap of a 900-weight grotesque sits a hair
-              right of the true margin, so pull it back to hang on the rule. */}
-          <h1 className="display mt-6 -ml-[0.055em] text-[clamp(3.25rem,13vw,10.5rem)]">
+          {/* Optical alignment: the left sidebearing keeps the cap off the
+              true margin, so pull it back to hang on the rule. Palatino
+              needs less of a pull than a heavy grotesque did. */}
+          <h1 className="display mt-6 -ml-[0.03em] text-[clamp(3.25rem,13vw,10.5rem)]">
             <span className="rise rise-2 block">A game.</span>
             <span className="rise rise-3 block">In the next</span>
             <span className="rise rise-4 block text-[var(--color-accent)]">hour.</span>
@@ -114,12 +118,12 @@ export default function LandingPage() {
                 {/* Label matches the outcome. "Ready up" is the in-app
                     action for joining the queue, so using it for signup
                     promises something this button doesn't do. */}
-                <span className="inline-flex h-14 items-center justify-center bg-[var(--color-accent)] px-8 text-base font-bold tracking-[0.02em] text-[var(--color-ground)] transition-[transform,background-color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]">
+                <span className="inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent)] px-8 text-base font-semibold text-white shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)] transition-[transform,box-shadow,background-color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-accent-hover)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]">
                   Create an account
                 </span>
               </Link>
               <Link href="/sign-in">
-                <span className="inline-flex h-14 items-center justify-center border border-[var(--color-ink)] px-8 text-base font-bold tracking-[0.02em] transition-[transform,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-ink)] hover:text-[var(--color-ground)] active:scale-[0.97]">
+                <span className="neu-raised inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] px-8 text-base font-semibold text-[var(--color-ink)] transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)] hover:text-[var(--color-accent)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]">
                   Sign in
                 </span>
               </Link>
@@ -130,9 +134,9 @@ export default function LandingPage() {
         {/* ---------- 01 How it works ---------- */}
         <section className="pb-20">
           <SectionMark n="01" title="How it works" />
-          <div className="mt-10 grid gap-px bg-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] sm:grid-cols-3">
+          <div className="mt-10 grid gap-5 sm:grid-cols-3">
             {STEPS.map((step) => (
-              <div key={step.n} className="bg-[var(--color-ground)] px-0 py-6 sm:px-6 sm:first:pl-0">
+              <div key={step.n} className="neu-raised rounded-[var(--radius-lg)] p-6">
                 <span className="label text-[var(--color-accent)]">{step.n}</span>
                 <h3 className="mt-3 text-xl font-bold tracking-[-0.015em]">{step.title}</h3>
                 <p className="mt-2 max-w-[38ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
@@ -146,9 +150,9 @@ export default function LandingPage() {
         {/* ---------- 02 Sports ---------- */}
         <section className="pb-20">
           <SectionMark n="02" title="Where you play" />
-          <ul className="mt-10 grid gap-px bg-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SPORTS.map((sport) => (
-              <li key={sport} className="group flex flex-col bg-[var(--color-ground)] p-6">
+              <li key={sport} className="neu-raised group flex flex-col rounded-[var(--radius-lg)] p-6">
                 <div className="flex items-baseline justify-between gap-4">
                   <h3 className="text-lg font-bold tracking-[-0.015em]">{sport}</h3>
                   <span className="label text-[var(--color-gray)]">{courtDimensions(sport)}</span>
@@ -162,14 +166,14 @@ export default function LandingPage() {
             ))}
             {/* Spans the remaining column so the grid has no empty cell —
                 an unfilled cell shows the gap colour and reads as a bug. */}
-            <li className="flex flex-col justify-end bg-[var(--color-ground)] p-6 lg:col-span-2">
+            <li className="neu-raised flex flex-col justify-end rounded-[var(--radius-lg)] p-6 lg:col-span-2">
               <div className="grid gap-6 sm:grid-cols-2">
                 <p className="max-w-[32ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
                   No bookings. Every court above is first come, first served, though PE and intramural
                   programming takes priority during the term, so a court can be taken without
                   notice. Courts are drawn to their real dimensions; the net is the dashed line.
                 </p>
-                <div className="border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+                <div className="pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
                   <span className="label text-[var(--color-accent)]">Coming soon</span>
                   {Object.keys(VENUES)
                     .flatMap((sport) => reservationVenues(sport as keyof typeof VENUES))
@@ -198,7 +202,7 @@ export default function LandingPage() {
             {TIERS.map((tier) => (
               <div
                 key={tier}
-                className="flex items-baseline gap-5 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] py-4 last:border-b sm:gap-8"
+                className="flex items-baseline gap-5 py-4  sm:gap-8"
               >
                 <dt className="display-sm w-10 shrink-0 text-[2rem] text-[var(--color-accent)] sm:w-14 sm:text-[2.75rem]">
                   {tier}

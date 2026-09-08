@@ -11,11 +11,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <aside className="hidden flex-col justify-between bg-[var(--color-accent)] p-10 text-[var(--color-ground)] lg:flex">
-        <Link href="/" className="label">
+        <Link href="/" className="wordmark">
           Cornell Racket Queue
         </Link>
 
-        <p className="display -ml-[0.055em] text-[clamp(3rem,6.5vw,5.5rem)]">
+        <p className="display -ml-[0.03em] text-[clamp(3rem,6.5vw,5.5rem)]">
           A game.
           <br />
           In the next
@@ -27,7 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       <div className="flex flex-col">
-        <header className="border-b border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] lg:hidden">
+        <header className="lg:hidden">
           <div className="flex h-14 items-center px-5">
             <Link href="/" className="label text-[var(--color-ink)]">
               Cornell Racket Queue

@@ -33,7 +33,7 @@ export default async function MatchesPage() {
 
   return (
     <section className="py-6">
-      <h1 className="display -ml-[0.045em] text-[clamp(2.75rem,8vw,6rem)]">Matches.</h1>
+      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">Matches.</h1>
 
       {matches && matches.length > 0 ? (
         <ul className="mt-12">
@@ -41,7 +41,7 @@ export default async function MatchesPage() {
             <li key={match.id}>
               <Link
                 href={`/matches/${match.id}`}
-                className="group grid items-baseline gap-2 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] py-6 transition-colors duration-150 last:border-b sm:grid-cols-[1fr_auto] sm:gap-6"
+                className="group grid items-baseline gap-2 py-6 transition-colors duration-150  sm:grid-cols-[1fr_auto] sm:gap-6"
               >
                 <span className="text-lg font-bold tracking-[-0.015em] group-hover:text-[var(--color-accent)]">
                   {match.agreed_location}
@@ -54,7 +54,7 @@ export default async function MatchesPage() {
           ))}
         </ul>
       ) : (
-        <div className="mt-12 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-10">
+        <div className="mt-12 pt-10">
           <p className="max-w-[42ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
             No confirmed matches yet. Ready up and you'll see them here once both of you accept.
           </p>

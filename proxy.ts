@@ -46,6 +46,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
+
   const isLanding = pathname === LANDING_PATH;
   const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 

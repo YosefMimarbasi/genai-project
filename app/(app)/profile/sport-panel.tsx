@@ -101,7 +101,7 @@ export function SportPanel({
   }
 
   return (
-    <div className="mt-12 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-8">
+    <div className="mt-12 pt-8">
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
         <div>
           <h2 className="display-sm text-[1.75rem]">{sport}</h2>
@@ -129,7 +129,7 @@ export function SportPanel({
             ) : null}
           </div>
 
-          <div className="mt-8 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-6">
+          <div className="mt-8 pt-6">
             <p className="label mb-3 text-[var(--color-gray)]">
               {confirmed ? "Saved tier" : "Your tier"}
             </p>

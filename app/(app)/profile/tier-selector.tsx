@@ -26,18 +26,21 @@ export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) 
               onClick={() => onChange(tier)}
               aria-pressed={selected}
               className={cn(
-                "flex h-12 w-12 items-center justify-center text-base font-bold",
-                "transition-[transform,background-color,border-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
+                "flex h-12 w-12 items-center justify-center rounded-[var(--radius-md)] text-base font-semibold",
+                "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
                 "active:scale-[0.94]",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]",
+                "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
+                // Saved: filled and pressed in.
                 selected &&
                   confirmed &&
-                  "border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-ground)]",
+                  "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]",
+                // Chosen but not yet saved: pressed in, but still bearing
+                // the ground colour and a red ring, so "picked" and "saved"
+                // stay tellable apart without relying on shadow alone.
                 selected &&
                   !confirmed &&
-                  "border-2 border-[var(--color-accent)] text-[var(--color-accent)]",
-                !selected &&
-                  "border border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)] text-[var(--color-ink)] hover:border-[var(--color-ink)]"
+                  "neu-pressed text-[var(--color-accent)] ring-2 ring-[var(--color-accent)]",
+                !selected && "neu-raised-sm text-[var(--color-ink)] hover:text-[var(--color-accent)]"
               )}
             >
               {tier}

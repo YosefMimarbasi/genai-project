@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
@@ -33,9 +34,9 @@ export function Nav() {
   }
 
   return (
-    <header className="border-b border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)]">
+    <header className="neu-raised sticky top-0 z-40 rounded-b-[var(--radius-lg)]">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
-        <Link href="/play" className="label text-[var(--color-ink)]">
+        <Link href="/play" className="wordmark text-[var(--color-ink)]">
           Cornell Racket Queue
         </Link>
         <nav className="flex items-center gap-5">
@@ -57,6 +58,7 @@ export function Nav() {
               </Link>
             );
           })}
+          <ThemeToggle />
           <button
             type="button"
             onClick={handleSignOut}

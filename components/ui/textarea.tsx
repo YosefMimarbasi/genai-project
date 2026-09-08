@@ -22,11 +22,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            "min-h-24 border bg-[var(--color-paper)] px-3 py-2.5 text-sm text-[var(--color-ink)]",
-            "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)]",
-            "outline-none transition-colors duration-150 ease-[var(--ease-out-strong)]",
-            "focus:border-[var(--color-accent)]",
+            "neu-pressed min-h-28 rounded-[var(--radius-md)] px-4 py-3 text-sm text-[var(--color-ink)]",
+            "outline-none transition-shadow duration-150 ease-[var(--ease-out-strong)]",
             "placeholder:text-[color-mix(in_oklab,var(--color-gray)_70%,transparent)]",
+            "focus:ring-2 focus:ring-[var(--color-accent)]",
             className
           )}
           {...props}

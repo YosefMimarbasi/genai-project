@@ -38,7 +38,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] py-6 sm:grid-cols-[3rem_10rem_1fr] sm:gap-6">
+    <div className="grid gap-4 py-6 sm:grid-cols-[3rem_10rem_1fr] sm:gap-6">
       <span className="display-sm text-[1.5rem] text-[var(--color-accent)]">{n}</span>
       <span className="label pt-1.5 text-[var(--color-gray)] sm:pt-2">{label}</span>
       <div>{children}</div>
@@ -46,7 +46,12 @@ function Field({
   );
 }
 
-/** Square, zero-radius toggle — the only selection control in this system. */
+/*
+ * Selection is carried by colour (a solid Cornell Red fill), with the
+ * extrusion flipping from raised to pressed on top of it. Shadow alone
+ * would be an invisible selection state for a lot of people, so it is
+ * reinforcement here rather than the signal.
+ */
 function Chip({
   selected,
   onClick,
@@ -62,13 +67,13 @@ function Chip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "border px-4 py-2 text-sm font-bold tracking-[0.01em]",
-        "transition-[transform,background-color,border-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
-        "active:scale-[0.97]",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]",
+        "flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold",
+        "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
+        "active:scale-[0.98]",
+        "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
         selected
-          ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-ground)]"
-          : "border-[color-mix(in_oklab,var(--color-rule)_25%,transparent)] text-[var(--color-ink)] hover:border-[var(--color-ink)]"
+          ? "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]"
+          : "neu-raised-sm text-[var(--color-ink)] hover:text-[var(--color-accent)]"
       )}
     >
       {children}
@@ -174,7 +179,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
   if (entryId) {
     return (
       <section className="py-10">
-        <h1 className="display -ml-[0.045em] text-[clamp(2.75rem,8vw,6rem)]">
+        <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
           Waiting for
           <br />
           a match.
@@ -207,7 +212,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
 
   return (
     <section className="py-6">
-      <h1 className="display -ml-[0.045em] text-[clamp(2.75rem,8vw,6rem)]">Find a game.</h1>
+      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">Find a game.</h1>
 
       <div className="mt-12">
         <Field n="01" label="Sport">
@@ -295,7 +300,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
                 <span
                   key={venue.name}
                   title={venue.note}
-                  className="border border-dashed border-[color-mix(in_oklab,var(--color-rule)_30%,transparent)] px-4 py-2 text-sm font-bold text-[color-mix(in_oklab,var(--color-gray)_85%,transparent)]"
+                  className="neu-pressed rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold text-[var(--color-gray)]"
                 >
                   {venue.name}
                 </span>
@@ -322,7 +327,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
         </Field>
       </div>
 
-      <div className="border-t border-[color-mix(in_oklab,var(--color-rule)_18%,transparent)] pt-8">
+      <div className="pt-8">
         <Button size="lg" loading={submitting} onClick={handleReadyUp}>
           Ready up
         </Button>

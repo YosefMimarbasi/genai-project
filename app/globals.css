@@ -1,37 +1,72 @@
 @import "tailwindcss";
 
 /*
- * Design system — Cornell Paddle Match
+ * Design system — Cornell Racket Queue
  *
- * Anchor recipe: `pentagram` (Pentagram / Paula Scher) from
- * .claude/skills/web-design-engineer/references/style-recipes/pentagram.md
+ * Visual language: neumorphism (.claude/skills/neumorphism) — soft extruded
+ * surfaces built from paired inner/outer shadows on a monochromatic ground.
  *
- * Type does the visual work; everything else recedes. The recipe's
- * "brick on bone" pairing is instantiated with Cornell's real Big Red
- * (#b31b1b) as the ink accent, so the identity is Cornell's rather than
- * a borrowed one. Radius 0, no shadow, no gradient, no photography —
- * all per the recipe's Avoid list.
+ * Typography and colour are Cornell's and are NOT set by that skill: the
+ * skill proposes Space Mono and a teal palette, both of which are ignored
+ * here in favour of Cornell's own Palatino / Freight stack and Big Red.
+ *
+ * Neumorphism's known failure mode is low contrast: it encodes state in
+ * shadow, which is invisible to many people and disappears entirely in
+ * high-contrast modes. The skill's own rules say to flag that conflict and
+ * prioritise accessibility. So throughout this file: shadow carries
+ * *affordance* (this is pressable, this is a well), while colour and text
+ * carry *state* (this is selected, this is invalid). Shadow is never the
+ * only signal.
  */
 @theme {
-  --font-sans: var(--font-archivo), ui-sans-serif, sans-serif;
+  /*
+   * Cornell's own typefaces, in the roles Cornell uses them:
+   *   Palatino     — the logo face; traditional, academic. Display.
+   *   Freight Sans — the primary screen sans. UI and body.
+   *   Freight Text — the contemporary serif. Long-form reading.
+   *
+   * Palatino ships with Windows (Palatino Linotype) and macOS (Palatino /
+   * Book Antiqua), so it needs no hosting and is used directly.
+   *
+   * Freight Sans and Freight Text are COMMERCIAL and cannot be served from
+   * a free CDN. They are named first in each stack anyway: self-host a
+   * licensed copy under these family names and the whole site picks them
+   * up with no other change. Until then the fallbacks are Source Sans 3
+   * and Source Serif 4, a matched pair chosen because they fill the same
+   * humanist-sans / contemporary-serif roles.
+   */
+  --font-display: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L", Georgia, serif;
+  --font-sans: "Freight Sans Pro", "FreightSans Pro", var(--font-source-sans), ui-sans-serif,
+    sans-serif;
+  --font-serif: "Freight Text Pro", "FreightText Pro", var(--font-source-serif), Georgia, serif;
 
-  /* Ink + ground + ONE accent. Do not add a fifth hue — the restriction
-     is the recipe (see INDEX.md cross-cutting anti-patterns). */
-  --color-accent: #b31b1b; /* Cornell Big Red */
+  /* Cornell Big Red, unchanged. */
+  --color-accent: #b31b1b;
   --color-accent-hover: #8f1616;
-  --color-ground: #efe9dc; /* bone */
-  --color-paper: #f7f5ef; /* raised surfaces */
+  --color-ground: #efe9dc;
+  --color-paper: #efe9dc; /* neumorphism: surfaces share the ground colour */
   --color-ink: #141210;
-  --color-gray: #6e6862;
-  --color-rule: #141210; /* used at low alpha for hairlines */
+  --color-gray: #6b645c;
+  --color-rule: #141210;
 
-  /* Status — desaturated to sit inside the bone/ink world rather than
-     introducing candy hues. */
   --color-success: #1e6b45;
   --color-danger: #b31b1b;
 
-  /* Strong custom easings — built-in CSS easings read as sluggish.
-     See .claude/skills/animate and emil-design-eng. */
+  /*
+   * The two shadow colours are the whole technique: one lighter than the
+   * ground, one darker, placed on opposite sides so the surface reads as
+   * lit from the top-left.
+   */
+  --neu-light: #ffffff;
+  --neu-dark: #c9c2b4;
+
+  /* Soft, generous radii — a hard corner cannot read as extruded. */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+
+  /* Strong custom easings — built-in CSS easings read as sluggish. */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -40,50 +75,154 @@ html {
   color-scheme: light;
 }
 
+/*
+ * Dark variant. Neumorphism needs headroom on both sides of the ground
+ * colour, so the dark ground is lifted off true black: at #000 there is no
+ * darker shadow available and the effect collapses.
+ *
+ * Cornell Red is lightened here. #b31b1b against a near-black ground is
+ * far too low-contrast to carry body text or a button label.
+ */
+html.dark {
+  color-scheme: dark;
+
+  --color-accent: #e05149;
+  --color-accent-hover: #ef6a61;
+  --color-ground: #1f1b17;
+  --color-paper: #1f1b17;
+  --color-ink: #efe9dc;
+  --color-gray: #a89e93;
+  --color-rule: #efe9dc;
+
+  --neu-light: #2a251f;
+  --neu-dark: #131110;
+}
+
 body {
   background: var(--color-ground);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: "tnum" 1; /* tabular figures — recipe: numerals from the same family */
+  font-feature-settings: "tnum" 1;
   -webkit-font-smoothing: antialiased;
   text-wrap: pretty;
+
+  /* Named properties, never `all`. Ease the theme change rather than
+     snapping it, so the brightness jump isn't abrupt. */
+  transition:
+    background-color 200ms var(--ease-out-strong),
+    color 200ms var(--ease-out-strong);
+}
+
+/* ---------------------------------------------------------------- *
+ * Neumorphic surfaces
+ *
+ * Semantic classes rather than raw box-shadow strings at every call
+ * site, so the light source stays consistent and the whole system can
+ * be retuned in one place.
+ * ---------------------------------------------------------------- */
+
+/** Raised: sits above the ground. Buttons, cards, the nav bar. */
+.neu-raised {
+  background: var(--color-paper);
+  box-shadow:
+    5px 5px 12px var(--neu-dark),
+    -5px -5px 12px var(--neu-light);
+}
+
+/** A smaller extrusion for dense controls (chips, tier squares). */
+.neu-raised-sm {
+  background: var(--color-paper);
+  box-shadow:
+    3px 3px 7px var(--neu-dark),
+    -3px -3px 7px var(--neu-light);
+}
+
+/** Pressed / carved into the ground. Inputs, wells, active toggles. */
+.neu-pressed {
+  background: var(--color-paper);
+  box-shadow:
+    inset 3px 3px 7px var(--neu-dark),
+    inset -3px -3px 7px var(--neu-light);
+}
+
+/**
+ * A hairline groove standing in for a divider. Neumorphism has no hard
+ * rules; a 1px inset seam separates without introducing a second visual
+ * metaphor.
+ */
+.neu-groove {
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ground);
+  box-shadow:
+    inset 1px 1px 2px var(--neu-dark),
+    inset -1px -1px 2px var(--neu-light);
 }
 
 /*
- * Tracking is size-specific, never one value for every size
- * (apple-design §15): large display type reads too loose as it grows and
- * wants negative tracking; small labels want a positive bump.
+ * Shadow is decoration; it must never be the only thing separating text
+ * from its background. Under forced-colours the extrusion is dropped
+ * entirely and real borders take over.
+ */
+@media (forced-colors: active) {
+  .neu-raised,
+  .neu-raised-sm,
+  .neu-pressed {
+    box-shadow: none;
+    border: 1px solid CanvasText;
+  }
+}
+
+/*
+ * Typography. Tracking is size-specific, never one value for every size:
+ * large display type reads too loose as it grows and wants negative
+ * tracking; small labels want a positive bump.
+ *
+ * Palatino is an old-style humanist serif: it tops out at bold, and its
+ * generous counters need less negative tracking than a heavy grotesque.
  */
 .display {
-  line-height: 0.88;
-  letter-spacing: -0.045em;
-  font-weight: 900;
+  font-family: var(--font-display);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-weight: 700;
   text-wrap: balance;
 }
 
 .display-sm {
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  font-weight: 900;
+  font-family: var(--font-display);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  font-weight: 700;
 }
 
 .label {
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.6875rem;
 }
 
-/* The 1px rule drawn across a whole block — recipe signature move. */
-.rule {
-  border-top: 1px solid color-mix(in oklab, var(--color-rule) 18%, transparent);
+/* Long-form reading (the legal pages) gets Cornell's contemporary serif. */
+.prose-serif {
+  font-family: var(--font-serif);
 }
 
 /*
- * Hero entrance. Typographic only — letters/lines rise onto the baseline.
- * No parallax, no 3D, no bounce (recipe: "typographic moves only").
- * This is the rare/first-time tier, which is where the delight budget
- * lives (see .claude/skills/animate step 1).
+ * The wordmark carries Cornell's logo face rather than the uppercase sans
+ * used for every other piece of metadata, so the name reads as an identity
+ * and not as one more label in the row.
+ */
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Hero entrance. Rare/first-time tier, which is where the delight budget
+ * lives. Transform and opacity only.
  */
 @keyframes rise {
   to {

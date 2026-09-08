@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LegalPage, Section, List, Fill } from "../legal-prose";
+import { LegalPage, Section, List, ContactEmail } from "../legal-prose";
 
 export const metadata: Metadata = {
   title: "Terms of Use | Cornell Racket Queue",
@@ -13,8 +13,7 @@ export default function TermsPage() {
         <p>
           Cornell Racket Queue introduces Cornell students who want to play a racket sport at the
           same time, at a similar level, at a court they can both get to. It is an independent
-          student project run by <Fill>[operator name]</Fill>, not affiliated with, endorsed by, or
-          sponsored by Cornell University.
+          student project, not affiliated with, endorsed by, or sponsored by Cornell University.
         </p>
         <p>By creating an account you agree to what follows.</p>
       </Section>
@@ -39,8 +38,7 @@ export default function TermsPage() {
             "You are free to leave at any point, for any reason, without explaining yourself.",
             <>
               If someone makes you feel unsafe, stop and report it to us at{" "}
-              <Fill>[contact email]</Fill>. In an emergency call 911, or Cornell Police at{" "}
-              <Fill>[campus emergency number]</Fill>.
+              <ContactEmail />. In an emergency call 911, or Cornell Police on (607) 255-1111.
             </>,
           ]}
         />
@@ -84,7 +82,7 @@ export default function TermsPage() {
       <Section heading="Closing your account">
         <p>
           You can stop using the app at any time and ask us to delete your account at{" "}
-          <Fill>[contact email]</Fill>. See the privacy policy for what deletion covers.
+          <ContactEmail />. See the privacy policy for what deletion covers.
         </p>
       </Section>
 

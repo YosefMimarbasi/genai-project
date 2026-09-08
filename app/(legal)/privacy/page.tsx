@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LegalPage, Section, List, Fill } from "../legal-prose";
+import { LegalPage, Section, List, ContactEmail } from "../legal-prose";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Cornell Racket Queue",
@@ -18,9 +18,9 @@ export default function PrivacyPage() {
     <LegalPage title="Privacy Policy" updated="September 2026">
       <Section heading="Who runs this">
         <p>
-          Cornell Racket Queue is an independent student project operated by{" "}
-          <Fill>[operator name]</Fill>. It is not affiliated with, endorsed by, or sponsored by
-          Cornell University. Questions about this policy go to <Fill>[contact email]</Fill>.
+          Cornell Racket Queue is an independent student project. It is not affiliated with,
+          endorsed by, or sponsored by Cornell University. Questions about this policy go to{" "}
+          <ContactEmail />.
         </p>
       </Section>
 
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
         <p>
           Queue entries are short-lived and expire on their own. Your profile, matches and messages
           are kept while your account exists. Ask us to delete your account at{" "}
-          <Fill>[contact email]</Fill> and we will remove your profile, queue history and messages.
+          <ContactEmail /> and we will remove your profile, queue history and messages.
         </p>
       </Section>
 
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
           You can view and change your sports and tiers at any time on your profile, stop using the
           queue whenever you like, and ask for your data to be deleted. Depending on where you
           live, you may also have a right to a copy of your data or to object to how it is used.
-          Write to <Fill>[contact email]</Fill> and we will respond.
+          Write to <ContactEmail /> and we will respond.
         </p>
       </Section>
 
