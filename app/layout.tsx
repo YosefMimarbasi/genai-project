@@ -38,7 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        {/* Light is the default for everyone. enableSystem is off on
+            purpose: with it on, a visitor whose OS is dark would land in
+            dark mode regardless of defaultTheme. */}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {children}
           <Toaster />
         </ThemeProvider>
