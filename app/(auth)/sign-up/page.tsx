@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Card } from "@/components/ui/card";
 import { TextInput } from "@/components/ui/text-input";
 import { Button } from "@/components/ui/button";
 
@@ -45,41 +44,58 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <h1 className="text-lg font-semibold">Create an account</h1>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Cornell students only — use your @cornell.edu email.
-        </p>
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <TextInput
-            label="Email"
-            type="email"
-            placeholder="you@cornell.edu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={emailError}
-            required
-          />
-          <TextInput
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-          />
-          <Button type="submit" loading={submitting} className="mt-1">
-            Sign up
-          </Button>
-        </form>
-        <p className="mt-6 text-center text-sm text-[var(--color-muted)]">
-          Already have an account?{" "}
-          <Link href="/sign-in" className="text-[var(--color-accent)] hover:underline">
-            Sign in
+    <>
+      <h1 className="display-sm text-[2.5rem]">Create an account</h1>
+      <p className="mt-3 text-[0.9375rem] leading-[1.5] text-[var(--color-gray)]">
+        Open to Cornell students. You'll need your NetID address.
+      </p>
+
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+        <TextInput
+          label="Email"
+          type="email"
+          placeholder="netid@cornell.edu"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={emailError}
+          hint="Your NetID address, e.g. abc123@cornell.edu."
+          required
+        />
+        <TextInput
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={8}
+          hint="At least 8 characters."
+          required
+        />
+        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
+          Sign up
+        </Button>
+
+        {/* Linked at the point of collection, not only from the footer. */}
+        <p className="text-xs leading-[1.6] text-[var(--color-gray)]">
+          By creating an account you agree to the{" "}
+          <Link href="/terms" className="font-bold text-[var(--color-accent)] hover:underline">
+            Terms of Use
+          </Link>{" "}
+          and the{" "}
+          <Link href="/privacy" className="font-bold text-[var(--color-accent)] hover:underline">
+            Privacy Policy
           </Link>
+          . This app arranges games with other students in person. Read the safety section of the
+          terms before your first match.
         </p>
-      </Card>
-    </div>
+      </form>
+
+      <div className="neu-groove mt-8" aria-hidden />
+      <p className="mt-5 text-sm text-[var(--color-gray)]">
+        Already have an account?{" "}
+        <Link href="/sign-in" className="font-bold text-[var(--color-accent)] hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </>
   );
 }

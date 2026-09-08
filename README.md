@@ -1,6 +1,6 @@
-# Cornell Paddle Match
+# Cornell Racket Queue
 
-A Cornell paddle-sports matching app. Next.js App Router (deployed as
+A Cornell racket-sports matching app. Next.js App Router (deployed as
 Vercel Functions) + Supabase (Postgres, Auth, Realtime — no Edge
 Functions, one deploy target).
 

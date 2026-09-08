@@ -8,15 +8,15 @@ interface TierSelectorProps {
   onChange: (tier: number) => void;
   /** Suggested-but-unconfirmed values render as an outline, not a fill —
    * the visual difference between "the model's guess" and "what's actually
-   * saved" matters here (see emil-design-eng: state indication is a valid
-   * reason to animate/differentiate, not decoration). */
+   * saved" matters here (state indication is a valid reason to
+   * differentiate; decoration is not). */
   confirmed: boolean;
 }
 
 export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-1.5">
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-2">
         {TIERS.map((tier) => {
           const selected = value === tier;
           return (
@@ -26,15 +26,21 @@ export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) 
               onClick={() => onChange(tier)}
               aria-pressed={selected}
               className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] text-sm font-medium",
-                "transition-[transform,background-color,border-color,color] duration-150 ease-[var(--ease-out-strong)]",
+                "flex h-12 w-12 items-center justify-center rounded-[var(--radius-md)] text-base font-semibold",
+                "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
                 "active:scale-[0.94]",
-                selected && confirmed && "bg-[var(--color-accent)] text-white",
+                "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
+                // Saved: filled and pressed in.
+                selected &&
+                  confirmed &&
+                  "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]",
+                // Chosen but not yet saved: pressed in, but still bearing
+                // the ground colour and a red ring, so "picked" and "saved"
+                // stay tellable apart without relying on shadow alone.
                 selected &&
                   !confirmed &&
-                  "border-2 border-[var(--color-accent)] text-[var(--color-accent)]",
-                !selected &&
-                  "border border-[var(--color-border)] text-[var(--color-foreground)] hover:border-[var(--color-foreground)]/30"
+                  "neu-pressed text-[var(--color-accent)] ring-2 ring-[var(--color-accent)]",
+                !selected && "neu-e1 text-[var(--color-ink)] hover:text-[var(--color-accent)]"
               )}
             >
               {tier}
@@ -42,7 +48,7 @@ export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) 
           );
         })}
       </div>
-      <p className="text-xs text-[var(--color-muted)]" aria-live="polite">
+      <p className="text-sm text-[var(--color-gray)]" aria-live="polite">
         {value ? TIER_LABELS[value as keyof typeof TIER_LABELS] : "Pick the tier that fits"}
       </p>
     </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/cn";
 
 const LINKS = [
   { href: "/play", label: "Play" },
@@ -15,6 +16,7 @@ const LINKS = [
 
 export function Nav() {
   const router = useRouter();
+  const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -24,7 +26,7 @@ export function Nav() {
     setSigningOut(false);
 
     if (error) {
-      toast.error("Couldn't sign out — try again.");
+      toast.error("Couldn't sign out. Try again.");
       return;
     }
     router.push("/sign-in");
@@ -32,24 +34,39 @@ export function Nav() {
   }
 
   return (
-    <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/play" className="font-mono text-sm font-semibold tracking-tight">
-          Cornell Paddle Match
+    <header className="neu-e2 mx-auto mt-4 max-w-6xl rounded-[var(--radius-lg)]">
+      <div className="flex h-14 items-center justify-between px-5">
+        <Link href="/play" className="wordmark text-[var(--color-ink)]">
+          Cornell Racket Queue
         </Link>
-        <nav className="flex items-center gap-1">
-          {LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-[var(--radius-control)] px-3 py-1.5 text-sm text-[var(--color-muted)] transition-colors duration-150 hover:bg-black/[0.04] hover:text-[var(--color-foreground)]"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Button variant="ghost" size="sm" onClick={handleSignOut} loading={signingOut}>
-            Sign out
-          </Button>
+        <nav className="flex items-center gap-5">
+          {LINKS.map((link) => {
+            const active = pathname.startsWith(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "label transition-colors duration-150",
+                  active
+                    ? "text-[var(--color-accent)]"
+                    : "text-[var(--color-gray)] hover:text-[var(--color-ink)]"
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="label text-[var(--color-gray)] transition-[color,transform] duration-150 ease-[var(--ease-out-strong)] hover:text-[var(--color-ink)] active:scale-[0.97] disabled:opacity-40"
+          >
+            {signingOut ? "Signing out" : "Sign out"}
+          </button>
         </nav>
       </div>
     </header>

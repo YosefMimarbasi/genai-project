@@ -1,63 +1,323 @@
 @import "tailwindcss";
 
 /*
- * Design system — Cornell Paddle Match
+ * Design system — Cornell Racket Queue
  *
- * Direction: restrained "modern tool" precision (hairline borders, minimal
- * shadow, one confident accent — Linear/Raycast school) crossed with warmth,
- * anchored on Cornell's own brand color rather than a borrowed identity.
- * Light mode only for v1 — tokens are named so a dark variant can be added
- * later without renaming call sites.
+ * Visual language: neumorphism (.claude/skills/neumorphism) — soft extruded
+ * surfaces built from paired inner/outer shadows on a monochromatic ground.
+ *
+ * Typography and colour are Cornell's and are NOT set by that skill: the
+ * skill proposes Space Mono and a teal palette, both of which are ignored
+ * here in favour of Cornell's own Palatino / Freight stack and Big Red.
+ *
+ * Neumorphism's known failure mode is low contrast: it encodes state in
+ * shadow, which is invisible to many people and disappears entirely in
+ * high-contrast modes. The skill's own rules say to flag that conflict and
+ * prioritise accessibility. So throughout this file: shadow carries
+ * *affordance* (this is pressable, this is a well), while colour and text
+ * carry *state* (this is selected, this is invalid). Shadow is never the
+ * only signal.
  */
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /*
+   * Cornell's own typefaces, in the roles Cornell uses them:
+   *   Palatino     — the logo face; traditional, academic. Display.
+   *   Freight Sans — the primary screen sans. UI and body.
+   *   Freight Text — the contemporary serif. Long-form reading.
+   *
+   * Palatino ships with Windows (Palatino Linotype) and macOS (Palatino /
+   * Book Antiqua), so it needs no hosting and is used directly.
+   *
+   * Freight Sans and Freight Text are COMMERCIAL and cannot be served from
+   * a free CDN. They are named first in each stack anyway: self-host a
+   * licensed copy under these family names and the whole site picks them
+   * up with no other change. Until then the fallbacks are Source Sans 3
+   * and Source Serif 4, a matched pair chosen because they fill the same
+   * humanist-sans / contemporary-serif roles.
+   */
+  --font-display: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L", Georgia, serif;
+  --font-sans: "Freight Sans Pro", "FreightSans Pro", var(--font-source-sans), ui-sans-serif,
+    sans-serif;
+  --font-serif: "Freight Text Pro", "FreightText Pro", var(--font-source-serif), Georgia, serif;
 
-  /* Cornell "Big Red" as the single accent — the one deliberate brand tie. */
+  /* Cornell Big Red, unchanged. */
   --color-accent: #b31b1b;
-  --color-accent-hover: #931614;
-  --color-accent-subtle: #fbebea;
+  --color-accent-hover: #8f1616;
+  --color-ground: #efe9dc;
+  --color-paper: #efe9dc; /* neumorphism: surfaces share the ground colour */
+  --color-ink: #141210;
+  --color-gray: #6b645c;
+  --color-rule: #141210;
 
-  --color-background: #fafaf8;
-  --color-surface: #ffffff;
-  --color-foreground: #171412;
-  --color-muted: #6b6560;
-  --color-border: #e5e1dc;
+  --color-success: #1e6b45;
+  --color-danger: #b31b1b;
 
-  --color-success: #1e7a4c;
-  --color-success-subtle: #e9f5ee;
-  --color-danger: #c4463a;
-  --color-danger-subtle: #fbebea;
-  --color-warning: #a6650a;
-  --color-warning-subtle: #fbf1e2;
+  /*
+   * The two shadow colours are the whole technique: one lighter than the
+   * ground, one darker, placed on opposite sides so the surface reads as
+   * lit from the top-left.
+   */
+  --neu-light: #ffffff;
+  --neu-dark: #c9c2b4;
 
-  --radius-control: 0.5rem; /* buttons, inputs */
-  --radius-card: 0.625rem; /* cards, popovers */
-  --radius-pill: 999px; /* badges, avatars */
+  /* Soft, generous radii — a hard corner cannot read as extruded. */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
 
-  /* Strong custom easings — the built-in CSS ones read as sluggish.
-     See .claude/skills/emil-design-eng. */
+  /* Strong custom easings — built-in CSS easings read as sluggish. */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 html {
   color-scheme: light;
 }
 
+/*
+ * Dark variant. Neumorphism needs headroom on both sides of the ground
+ * colour, so the dark ground is lifted off true black: at #000 there is no
+ * darker shadow available and the effect collapses.
+ *
+ * Cornell Red is lightened here. #b31b1b against a near-black ground is
+ * far too low-contrast to carry body text or a button label.
+ */
+html.dark {
+  color-scheme: dark;
+
+  --color-accent: #e05149;
+  --color-accent-hover: #ef6a61;
+  --color-ground: #1f1b17;
+  --color-paper: #1f1b17;
+  --color-ink: #efe9dc;
+  --color-gray: #a89e93;
+  --color-rule: #efe9dc;
+
+  --neu-light: #2a251f;
+  --neu-dark: #131110;
+}
+
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--color-ground);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+
+  /* Named properties, never `all`. Ease the theme change rather than
+     snapping it, so the brightness jump isn't abrupt. */
+  transition:
+    background-color 200ms var(--ease-out-strong),
+    color 200ms var(--ease-out-strong);
+}
+
+/* ---------------------------------------------------------------- *
+ * Neumorphic surfaces
+ *
+ * Semantic classes rather than raw box-shadow strings at every call
+ * site, so the light source stays consistent and the whole system can
+ * be retuned in one place.
+ * ---------------------------------------------------------------- */
+
+/*
+ * An elevation scale, not one shadow reused everywhere. Height is the only
+ * hierarchy this style has: if every surface sits at the same altitude,
+ * nothing reads as primary and the page flattens out. Roles, low to high:
+ *
+ *   e1  dense controls — chips, tier squares, message bubbles
+ *   e2  content surfaces — cards, nav, footer
+ *   e3  the thing you're meant to act on or read — primary CTA, popovers,
+ *       a long document's sheet
+ */
+.neu-e1 {
+  background: var(--color-paper);
+  box-shadow:
+    3px 3px 7px var(--neu-dark),
+    -3px -3px 7px var(--neu-light);
+}
+
+.neu-e2 {
+  background: var(--color-paper);
+  box-shadow:
+    5px 5px 12px var(--neu-dark),
+    -5px -5px 12px var(--neu-light);
+}
+
+.neu-e3 {
+  background: var(--color-paper);
+  box-shadow:
+    9px 9px 22px var(--neu-dark),
+    -9px -9px 22px var(--neu-light);
+}
+
+/** Pressed / carved into the ground. Inputs, wells, active toggles. */
+.neu-pressed {
+  background: var(--color-paper);
+  box-shadow:
+    inset 3px 3px 7px var(--neu-dark),
+    inset -3px -3px 7px var(--neu-light);
+}
+
+/*
+ * A raised surface that never reacts feels like a photograph of a button.
+ * Lift on hover, and only on real pointers — touch fires hover on tap.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .neu-lift {
+    transition:
+      box-shadow 220ms var(--ease-out-strong),
+      transform 220ms var(--ease-out-strong);
+  }
+
+  .neu-lift:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      9px 9px 22px var(--neu-dark),
+      -9px -9px 22px var(--neu-light);
+  }
+}
+
+/*
+ * Engraved line art. A hard 1px stroke is the one sharp thing left inside
+ * a soft system; a light lower-right offset makes the line read as cut
+ * into the surface rather than drawn on top of it.
+ */
+.neu-engraved {
+  filter: drop-shadow(1px 1px 0 var(--neu-light));
+}
+
+/**
+ * A hairline groove standing in for a divider. Neumorphism has no hard
+ * rules; a 1px inset seam separates without introducing a second visual
+ * metaphor.
+ */
+.neu-groove {
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-ground);
+  box-shadow:
+    inset 1px 1px 2px var(--neu-dark),
+    inset -1px -1px 2px var(--neu-light);
+}
+
+/*
+ * Shadow is decoration; it must never be the only thing separating text
+ * from its background. Under forced-colours the extrusion is dropped
+ * entirely and real borders take over.
+ */
+@media (forced-colors: active) {
+  .neu-e1,
+  .neu-e2,
+  .neu-e3,
+  .neu-pressed {
+    box-shadow: none;
+    border: 1px solid CanvasText;
+  }
+}
+
+/*
+ * Typography. Tracking is size-specific, never one value for every size:
+ * large display type reads too loose as it grows and wants negative
+ * tracking; small labels want a positive bump.
+ *
+ * Palatino is an old-style humanist serif: it tops out at bold, and its
+ * generous counters need less negative tracking than a heavy grotesque.
+ */
+.display {
+  font-family: var(--font-display);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.display-sm {
+  font-family: var(--font-display);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+.label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.6875rem;
+}
+
+/* Long-form reading (the legal pages) gets Cornell's contemporary serif. */
+.prose-serif {
+  font-family: var(--font-serif);
+}
+
+/*
+ * The wordmark carries Cornell's logo face rather than the uppercase sans
+ * used for every other piece of metadata, so the name reads as an identity
+ * and not as one more label in the row.
+ */
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Hero entrance. Rare/first-time tier, which is where the delight budget
+ * lives. Transform and opacity only.
+ */
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: rise 520ms var(--ease-out-strong) forwards;
+}
+
+/* Stagger stays in the 30–80ms band — longer delays read as slow. */
+.rise-1 {
+  animation-delay: 0ms;
+}
+.rise-2 {
+  animation-delay: 60ms;
+}
+.rise-3 {
+  animation-delay: 120ms;
+}
+.rise-4 {
+  animation-delay: 180ms;
+}
+.rise-5 {
+  animation-delay: 240ms;
+}
+
+/*
+ * Reduced motion means fewer and gentler animations, not zero — keep the
+ * opacity fade that aids comprehension, drop the positional movement.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    transform: none;
+    animation-duration: 200ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ground);
 }

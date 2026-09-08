@@ -1,4 +1,4 @@
-# Cornell Paddle Match — Claude Code build prompts (parallel branches)
+# Cornell Racket Queue — Claude Code build prompts (parallel branches)
 
 ## How this is organized
 

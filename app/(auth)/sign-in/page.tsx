@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Card } from "@/components/ui/card";
 import { TextInput } from "@/components/ui/text-input";
 import { Button } from "@/components/ui/button";
 
@@ -28,41 +27,42 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/");
+    router.push("/play");
     router.refresh();
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <h1 className="text-lg font-semibold">Sign in</h1>
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <TextInput
-            label="Email"
-            type="email"
-            placeholder="you@cornell.edu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextInput
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" loading={submitting} className="mt-1">
-            Sign in
-          </Button>
-        </form>
-        <p className="mt-6 text-center text-sm text-[var(--color-muted)]">
-          New here?{" "}
-          <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">
-            Create an account
-          </Link>
-        </p>
-      </Card>
-    </div>
+    <>
+      <h1 className="display-sm text-[2.5rem]">Sign in</h1>
+
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+        <TextInput
+          label="Email"
+          type="email"
+          placeholder="netid@cornell.edu"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextInput
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
+          Sign in
+        </Button>
+      </form>
+
+      <div className="neu-groove mt-8" aria-hidden />
+      <p className="mt-5 text-sm text-[var(--color-gray)]">
+        New here?{" "}
+        <Link href="/sign-up" className="font-bold text-[var(--color-accent)] hover:underline">
+          Create an account
+        </Link>
+      </p>
+    </>
   );
 }
