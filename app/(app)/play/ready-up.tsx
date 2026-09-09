@@ -244,7 +244,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
     <section>
       <h1 className="display text-[clamp(2.25rem,7vw,4rem)]">Find a game.</h1>
       <p className="mt-4 max-w-[48ch] text-lg text-[var(--color-muted-foreground)]">
-        Four questions, then you're in the queue.
+        Five quick answers, then you're in the queue.
       </p>
 
       <form

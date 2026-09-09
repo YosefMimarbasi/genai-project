@@ -23,19 +23,19 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
   }
 
   return (
-    <section className="py-6">
-      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
-        What do
-        <br />
-        you play?
-      </h1>
-      <p className="mt-8 max-w-[42ch] text-[1.0625rem] leading-[1.5] text-[var(--color-muted-foreground)]">
+    <section>
+      <h1 className="display text-[clamp(2.25rem,7vw,4rem)]">What do you play?</h1>
+      <p className="mt-4 max-w-[48ch] text-lg text-[var(--color-muted-foreground)]">
         Add the sports you play so we can match you with someone at your level.
       </p>
 
-      <div className="mt-12 pt-8">
+      <div className="mt-10">
         {addedSports.length > 0 ? (
-          <div className="mb-8 flex flex-wrap gap-2">
+          <div
+            role="group"
+            aria-label="Your sports"
+            className="mb-8 flex flex-wrap gap-2"
+          >
             {addedSports.map((sport) => (
               <button
                 key={sport}
@@ -43,21 +43,27 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
                 onClick={() => setActiveSport(sport)}
                 aria-pressed={activeSport === sport}
                 className={cn(
- "flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold",
- "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out)]",
- "active:scale-[0.98]",
- "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-primary)]",
+                  "ui-text flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--radius-md)]",
+                  "border-2 px-4 text-sm font-semibold",
+                  "transition-[transform,background-color,border-color,color] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+                  "active:scale-[0.97]",
+                  "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
                   activeSport === sport
-                    ? "bg-[var(--color-primary)] text-white "
-                    : "surface hover:text-[var(--color-primary)]"
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+                    : "border-[var(--color-border-strong)] bg-[var(--color-card)] hover:border-[var(--color-foreground)]"
                 )}
               >
                 {sport}
-                <span className="text-xs opacity-70">T{skillTier[sport]}</span>
+                <span className="tnum text-xs opacity-70">T{skillTier[sport]}</span>
               </button>
             ))}
           </div>
-        ) : null}
+        ) : (
+          /* §8 empty-states — say what to do, don't just show a bare select. */
+          <p className="mb-8 max-w-[46ch] text-[var(--color-muted-foreground)]">
+            You haven't added a sport yet. Pick one below and tell us how you play.
+          </p>
+        )}
 
         {availableSports.length > 0 ? (
           <Select

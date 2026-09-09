@@ -101,11 +101,11 @@ export function SportPanel({
   }
 
   return (
-    <div className="mt-12">
-      <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
+    <div className="surface mt-10 p-6 sm:p-8">
+      <div className="grid gap-10 lg:grid-cols-[1fr_18rem]">
         <div>
-          <h2 className="title text-[1.75rem]">{sport}</h2>
-          <p className="mt-2 max-w-[46ch] text-[0.9375rem] leading-[1.55] text-[var(--color-muted-foreground)]">
+          <h2 className="title text-2xl">{sport}</h2>
+          <p className="mt-2 max-w-[48ch] text-[var(--color-muted-foreground)]">
             A sentence or two about how you play is enough. Mention matches, leagues, or just how
             long you've played.
           </p>
@@ -117,6 +117,7 @@ export function SportPanel({
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
               rows={3}
+              hint="This is sent to an AI model to suggest a tier. Nothing is saved without your confirmation."
             />
           </div>
 
@@ -125,12 +126,12 @@ export function SportPanel({
               Get a tier suggestion
             </Button>
             {rationale ? (
-              <p className="max-w-[36ch] text-xs text-[var(--color-muted-foreground)]">{rationale}</p>
+              <p className="ui-text max-w-[36ch] text-xs text-[var(--color-muted-foreground)]">{rationale}</p>
             ) : null}
           </div>
 
-          <div className="mt-8">
-            <p className="eyebrow mb-3 text-[var(--color-muted-foreground)]">
+          <div className="mt-8 border-t border-[var(--color-border)] pt-6">
+            <p className="ui-text mb-3 text-sm font-semibold">
               {confirmed ? "Saved tier" : "Your tier"}
             </p>
             <TierSelector value={selectedTier} onChange={setSelectedTier} confirmed={confirmed} />
@@ -144,10 +145,10 @@ export function SportPanel({
         </div>
 
         <aside className="hidden lg:block">
-          <p className="eyebrow text-[var(--color-muted-foreground)]">{courtDimensions(sport)}</p>
+          <p className="eyebrow tnum text-[var(--color-muted-foreground)]">{courtDimensions(sport)}</p>
           <CourtDiagram
             sport={sport}
-            className=" mt-4 w-full "
+            className="mt-4 w-full text-[var(--color-border-strong)]"
           />
         </aside>
       </div>
