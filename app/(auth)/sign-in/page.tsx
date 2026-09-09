@@ -33,12 +33,14 @@ export default function SignInPage() {
 
   return (
     <>
-      <h1 className="display-sm text-[2.5rem]">Sign in</h1>
+      <h1 className="display text-[clamp(2rem,7vw,2.75rem)]">Sign in</h1>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
         <TextInput
           label="Email"
           type="email"
+          inputMode="email"
+          autoComplete="email"
           placeholder="netid@cornell.edu"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -47,19 +49,22 @@ export default function SignInPage() {
         <TextInput
           label="Password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
+        <Button type="submit" size="lg" full loading={submitting} className="mt-2">
           Sign in
         </Button>
       </form>
 
-      <div className="neu-groove mt-8" aria-hidden />
-      <p className="mt-5 text-sm text-[var(--color-gray)]">
+      <p className="ui-text mt-8 border-t border-[var(--color-border)] pt-6 text-sm text-[var(--color-muted-foreground)]">
         New here?{" "}
-        <Link href="/sign-up" className="font-bold text-[var(--color-accent)] hover:underline">
+        <Link
+          href="/sign-up"
+          className="font-semibold text-[var(--color-primary)] underline underline-offset-2"
+        >
           Create an account
         </Link>
       </p>

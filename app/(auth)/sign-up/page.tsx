@@ -15,19 +15,32 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
+  const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // §8 inline-validation — validate on blur, not on every keystroke, so
+  // the user isn't told they're wrong while still typing.
+  function validateEmail(value: string) {
+    if (!CORNELL_EMAIL.test(value)) {
+      setEmailError("Use your Cornell address, ending in @cornell.edu");
+      return false;
+    }
+    setEmailError(undefined);
+    return true;
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
     // Client-side format nudge only — the real restriction is enforced
-    // server-side by the auth.users trigger (see feature/schema-rls), so a
-    // bypassed client check still gets rejected there.
-    if (!CORNELL_EMAIL.test(email)) {
-      setEmailError("Use your @cornell.edu email");
+    // server-side by the auth.users trigger, so a bypassed check still
+    // gets rejected there.
+    setTouched(true);
+    if (!validateEmail(email)) {
+      // §8 focus-management — send focus to the field that failed.
+      document.getElementById("signup-email")?.focus();
       return;
     }
-    setEmailError(undefined);
 
     setSubmitting(true);
     const supabase = createSupabaseBrowserClient();
@@ -45,54 +58,68 @@ export default function SignUpPage() {
 
   return (
     <>
-      <h1 className="display-sm text-[2.5rem]">Create an account</h1>
-      <p className="mt-3 text-[0.9375rem] leading-[1.5] text-[var(--color-gray)]">
+      <h1 className="display text-[clamp(2rem,7vw,2.75rem)]">Create an account</h1>
+      <p className="mt-3 text-[var(--color-muted-foreground)]">
         Open to Cornell students. You'll need your NetID address.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
         <TextInput
+          id="signup-email"
           label="Email"
           type="email"
+          inputMode="email"
+          autoComplete="email"
           placeholder="netid@cornell.edu"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (touched) validateEmail(e.target.value);
+          }}
+          onBlur={(e) => {
+            setTouched(true);
+            validateEmail(e.currentTarget.value);
+          }}
           error={emailError}
-          hint="Your NetID address, e.g. abc123@cornell.edu."
+          hint="Your NetID address, e.g. abc123@cornell.edu"
           required
         />
         <TextInput
           label="Password"
           type="password"
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength={8}
           hint="At least 8 characters."
           required
         />
-        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
+
+        <Button type="submit" size="lg" full loading={submitting} className="mt-2">
           Sign up
         </Button>
 
         {/* Linked at the point of collection, not only from the footer. */}
-        <p className="text-xs leading-[1.6] text-[var(--color-gray)]">
+        <p className="ui-text text-xs leading-relaxed text-[var(--color-muted-foreground)]">
           By creating an account you agree to the{" "}
-          <Link href="/terms" className="font-bold text-[var(--color-accent)] hover:underline">
+          <Link href="/terms" className="font-semibold text-[var(--color-primary)] underline underline-offset-2">
             Terms of Use
           </Link>{" "}
-          and the{" "}
-          <Link href="/privacy" className="font-bold text-[var(--color-accent)] hover:underline">
+          and{" "}
+          <Link href="/privacy" className="font-semibold text-[var(--color-primary)] underline underline-offset-2">
             Privacy Policy
           </Link>
-          . This app arranges games with other students in person. Read the safety section of the
-          terms before your first match.
+          . This app arranges games with other students in person, so read the safety section of
+          the terms before your first match.
         </p>
       </form>
 
-      <div className="neu-groove mt-8" aria-hidden />
-      <p className="mt-5 text-sm text-[var(--color-gray)]">
+      <p className="ui-text mt-8 border-t border-[var(--color-border)] pt-6 text-sm text-[var(--color-muted-foreground)]">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-bold text-[var(--color-accent)] hover:underline">
+        <Link
+          href="/sign-in"
+          className="font-semibold text-[var(--color-primary)] underline underline-offset-2"
+        >
           Sign in
         </Link>
       </p>

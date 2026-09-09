@@ -69,7 +69,7 @@ const COURTS: Record<Sport, CourtSpec> = {
     ],
     dimensions: "44 × 20 ft",
   },
-  "Table Tennis": {
+ "Table Tennis": {
     box: [9, 5],
     net: 4.5,
     lines: [

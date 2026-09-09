@@ -9,6 +9,7 @@ import { SPORTS, TIERS, TIER_LABELS, type Sport } from "@/lib/sports";
 import { queueableVenues, reservationVenues } from "@/lib/courts";
 import { CourtDiagram } from "@/components/court-diagram";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/cn";
 import { MatchProposal } from "./match-proposal";
 
@@ -26,31 +27,50 @@ const WINDOWS = [
 
 const INTENSITIES = ["casual", "competitive"] as const;
 
-/** Field rows are numbered like a spec sheet — the recipe's oversized
- *  section numeral, scaled down to field level. */
-function Field({
+/*
+ * §8 field-grouping — each step is a real <fieldset> with a <legend>, so
+ *   screen readers announce which group a chip belongs to instead of
+ *   reading a flat wall of buttons.
+ */
+function Step({
   n,
-  label,
+  legend,
+  help,
   children,
 }: {
   n: string;
-  label: string;
+  legend: string;
+  help?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 py-6 sm:grid-cols-[3rem_10rem_1fr] sm:gap-6">
-      <span className="display-sm text-[1.5rem] text-[var(--color-accent)]">{n}</span>
-      <span className="label pt-1.5 text-[var(--color-gray)] sm:pt-2">{label}</span>
-      <div>{children}</div>
-    </div>
+    <fieldset className="border-t border-[var(--color-border)] py-7 first:border-t-0 first:pt-0">
+      <legend className="sr-only">{legend}</legend>
+      <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-6">
+        <div className="flex items-start gap-3 sm:w-40">
+          <span
+            aria-hidden
+            className="ui-text tnum inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-muted)] text-xs font-bold text-[var(--color-primary)]"
+          >
+            {n}
+          </span>
+          <span className="ui-text pt-1 text-sm font-semibold">{legend}</span>
+        </div>
+        <div>
+          {children}
+          {help ? (
+            <p className="ui-text mt-3 text-sm text-[var(--color-muted-foreground)]">{help}</p>
+          ) : null}
+        </div>
+      </div>
+    </fieldset>
   );
 }
 
 /*
- * Selection is carried by colour (a solid Cornell Red fill), with the
- * extrusion flipping from raised to pressed on top of it. Shadow alone
- * would be an invisible selection state for a lot of people, so it is
- * reinforcement here rather than the signal.
+ * §1 color-not-only — selection carries a checkmark as well as the fill,
+ *   so it survives for a colour-blind user and in forced-colours mode.
+ * §2 touch-target-size — min-h-11 (44px).
  */
 function Chip({
   selected,
@@ -67,15 +87,21 @@ function Chip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold",
-        "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
-        "active:scale-[0.98]",
-        "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
+        "ui-text inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--radius-md)]",
+        "border-2 px-4 text-sm font-semibold",
+        "transition-[transform,background-color,border-color,color] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+        "active:scale-[0.97]",
+        "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
         selected
-          ? "bg-[var(--color-accent)] text-white shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]"
-          : "neu-e1 text-[var(--color-ink)] hover:text-[var(--color-accent)]"
+          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+          : "border-[var(--color-border-strong)] bg-[var(--color-card)] text-[var(--color-foreground)] hover:border-[var(--color-foreground)]"
       )}
     >
+      {selected ? (
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={3} aria-hidden>
+          <path d="m3 8 3.5 3.5L13 5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : null}
       {children}
     </button>
   );
@@ -103,7 +129,7 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
     // previous sport's tier across.
     setTier(savedTiers[next] ?? 3);
     // Venues are sport-specific, so a selection from the previous sport is
-    // meaningless here — clear rather than silently submitting a court that
+    // meaningless — clear rather than silently submitting a court that
     // doesn't host this sport.
     setLocations([]);
   }
@@ -176,29 +202,32 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
     );
   }
 
+  // --- Waiting state -------------------------------------------------
   if (entryId) {
     return (
-      <section className="py-10">
-        <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
-          Waiting for
-          <br />
-          a match.
-        </h1>
-        <p className="mt-8 max-w-[40ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
-          You're in for {sport.toLowerCase()} at tier {tier}, next {windowHours}{" "}
+      <section>
+        <div className="flex items-center gap-3">
+          <Spinner />
+          <p className="eyebrow text-[var(--color-primary)]">In the queue</p>
+        </div>
+
+        <h1 className="display mt-5 text-[clamp(2.25rem,7vw,4rem)]">Waiting for a match.</h1>
+
+        <p className="mt-6 max-w-[46ch] text-lg text-[var(--color-muted-foreground)]">
+          You're in for {sport.toLowerCase()} at tier {tier}, for the next {windowHours}{" "}
           {windowHours === 1 ? "hour" : "hours"}. This page updates itself the moment someone
           matches you, so you don't need to refresh.
         </p>
 
         <CourtDiagram
           sport={sport}
-          className="neu-engraved mt-12 w-full max-w-2xl text-[color-mix(in_oklab,var(--color-ink)_30%,transparent)]"
+          className="mt-10 w-full max-w-2xl text-[var(--color-border)]"
         />
 
         <Button
           variant="secondary"
           size="lg"
-          className="mt-12"
+          className="mt-10"
           onClick={() => {
             setEntryId(null);
             toast.message("Left the queue view. Your entry expires on its own.");
@@ -210,12 +239,22 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
     );
   }
 
+  // --- Form ----------------------------------------------------------
   return (
-    <section className="py-6">
-      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">Find a game.</h1>
+    <section>
+      <h1 className="display text-[clamp(2.25rem,7vw,4rem)]">Find a game.</h1>
+      <p className="mt-4 max-w-[48ch] text-lg text-[var(--color-muted-foreground)]">
+        Four questions, then you're in the queue.
+      </p>
 
-      <div className="mt-12">
-        <Field n="01" label="Sport">
+      <form
+        className="mt-10"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleReadyUp();
+        }}
+      >
+        <Step n="01" legend="Sport">
           <div className="flex flex-wrap gap-2">
             {SPORTS.map((s) => (
               <Chip key={s} selected={s === sport} onClick={() => selectSport(s)}>
@@ -223,9 +262,15 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
               </Chip>
             ))}
           </div>
-        </Field>
+        </Step>
 
-        <Field n="02" label="Your tier">
+        <Step
+          n="02"
+          legend="Your tier"
+          help={`${TIER_LABELS[tier as (typeof TIERS)[number]]}${
+            savedTiers[sport] === tier ? " · saved on your profile" : ""
+          }`}
+        >
           <div className="flex flex-wrap gap-2">
             {TIERS.map((t) => (
               <Chip key={t} selected={t === tier} onClick={() => setTier(t)}>
@@ -233,13 +278,9 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
               </Chip>
             ))}
           </div>
-          <p className="mt-3 text-sm text-[var(--color-gray)]">
-            {TIER_LABELS[tier as (typeof TIERS)[number]]}
-            {savedTiers[sport] === tier ? " (saved on your profile)" : ""}
-          </p>
-        </Field>
+        </Step>
 
-        <Field n="03" label="Free for">
+        <Step n="03" legend="Free for">
           <div className="flex flex-wrap gap-2">
             {WINDOWS.map((w) => (
               <Chip
@@ -251,9 +292,13 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
               </Chip>
             ))}
           </div>
-        </Field>
+        </Step>
 
-        <Field n="04" label="Where">
+        <Step
+          n="04"
+          legend="Where"
+          help={venues.length > 0 ? "Pick as many as you'd walk to." : undefined}
+        >
           {venues.length > 0 ? (
             <>
               <div className="flex flex-wrap gap-2">
@@ -271,48 +316,46 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
                 ))}
               </div>
 
-              {/* Hours are the difference between a match that can happen and
-                  one that can't — badminton at Noyes is Saturdays only. */}
-              <dl className="mt-4 flex flex-col gap-1">
+              {/* Hours decide whether a match can happen at all — badminton
+                  at Noyes is Saturdays only. */}
+              <dl className="ui-text mt-4 flex flex-col gap-1 text-xs">
                 {venues
-                  .filter((venue) => venue.hours || venue.note)
+                  .filter((v) => v.hours || v.note)
                   .map((venue) => (
-                    <div key={venue.name} className="flex gap-2 text-xs leading-[1.5]">
-                      <dt className="font-bold">{venue.name}</dt>
-                      <dd className="text-[var(--color-gray)]">{venue.hours ?? venue.note}</dd>
+                    <div key={venue.name} className="flex gap-2">
+                      <dt className="font-semibold">{venue.name}</dt>
+                      <dd className="text-[var(--color-muted-foreground)]">
+                        {venue.hours ?? venue.note}
+                      </dd>
                     </div>
                   ))}
               </dl>
-
-              <p className="mt-3 text-sm text-[var(--color-gray)]">
-                Pick as many as you'd travel to.
-              </p>
             </>
           ) : (
-            <p className="text-sm text-[var(--color-gray)]">
-              No open-play courts listed for {sport.toLowerCase()} yet.
+            /* §8 empty-states */
+            <p className="ui-text text-sm text-[var(--color-muted-foreground)]">
+              No open-play courts are listed for {sport.toLowerCase()} yet.
             </p>
           )}
 
           {comingSoon.length > 0 ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="ui-text mt-5 flex flex-wrap items-center gap-3">
               {comingSoon.map((venue) => (
                 <span
                   key={venue.name}
-                  title={venue.note}
-                  className="neu-pressed rounded-[var(--radius-md)] px-4 py-2.5 text-sm font-semibold text-[var(--color-gray)]"
+                  className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] border-2 border-dashed border-[var(--color-border)] px-4 text-sm font-semibold text-[var(--color-muted-foreground)]"
                 >
                   {venue.name}
                 </span>
               ))}
-              <span className="label text-[var(--color-gray)]">
-                Coming soon: {comingSoon[0].note?.toLowerCase()}
+              <span className="eyebrow text-[var(--color-muted-foreground)]">
+                Coming soon · {comingSoon[0].note?.toLowerCase()}
               </span>
             </div>
           ) : null}
-        </Field>
+        </Step>
 
-        <Field n="05" label="Intensity">
+        <Step n="05" legend="Intensity">
           <div className="flex flex-wrap gap-2">
             {INTENSITIES.map((option) => (
               <Chip
@@ -324,14 +367,14 @@ export function ReadyUp({ savedTiers }: { savedTiers: Record<string, number> }) 
               </Chip>
             ))}
           </div>
-        </Field>
-      </div>
+        </Step>
 
-      <div className="pt-8">
-        <Button size="lg" loading={submitting} onClick={handleReadyUp}>
-          Ready up
-        </Button>
-      </div>
+        <div className="border-t border-[var(--color-border)] pt-8">
+          <Button type="submit" size="lg" loading={submitting}>
+            Ready up
+          </Button>
+        </div>
+      </form>
     </section>
   );
 }

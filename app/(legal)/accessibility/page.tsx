@@ -25,12 +25,12 @@ export default function AccessibilityPage() {
       <Section heading="What is in place today">
         <List
           items={[
-            "Every control can be reached and operated with a keyboard, and the focused element is always visibly outlined.",
-            "Form fields have real labels, and errors are announced rather than shown only as colour.",
-            "Colour is never the only way information is conveyed. A tier you have saved and a tier merely suggested differ in fill, not just in shade.",
-            "If your system asks for reduced motion, movement is removed and only gentle fades remain.",
-            "Text reflows down to small screens without a horizontal scrollbar, and respects your browser's text size.",
-            "Court diagrams are decorative and hidden from screen readers; the same information is given as text next to them.",
+ "Every control can be reached and operated with a keyboard, and the focused element is always visibly outlined.",
+ "Form fields have real labels, and errors are announced rather than shown only as colour.",
+ "Colour is never the only way information is conveyed. A tier you have saved and a tier merely suggested differ in fill, not just in shade.",
+ "If your system asks for reduced motion, movement is removed and only gentle fades remain.",
+ "Text reflows down to small screens without a horizontal scrollbar, and respects your browser's text size.",
+ "Court diagrams are decorative and hidden from screen readers; the same information is given as text next to them.",
           ]}
         />
       </Section>
@@ -38,9 +38,9 @@ export default function AccessibilityPage() {
       <Section heading="Known gaps">
         <List
           items={[
-            "No screen reader testing has been done on the live matching flow.",
-            "The 90-second window to accept a match is a fixed time limit and cannot currently be extended.",
-            "Colour contrast has been designed carefully but not measured across every state.",
+ "No screen reader testing has been done on the live matching flow.",
+ "The 90-second window to accept a match is a fixed time limit and cannot currently be extended.",
+ "Colour contrast has been designed carefully but not measured across every state.",
           ]}
         />
       </Section>

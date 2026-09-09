@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
@@ -14,6 +15,14 @@ const LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
+/*
+ * §9 adaptive-navigation — a top bar on every width; the link row stays
+ *   visible on mobile rather than hiding behind a hamburger, since there
+ *   are only three destinations.
+ * §9 nav-state-active — the current section is marked with weight, colour
+ *   AND an underline bar, not colour alone (§1 color-not-only).
+ * §9 destructive-nav-separation — sign-out is spaced away from the links.
+ */
 export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
@@ -34,12 +43,14 @@ export function Nav() {
   }
 
   return (
-    <header className="neu-e2 mx-auto mt-4 max-w-6xl rounded-[var(--radius-lg)]">
-      <div className="flex h-14 items-center justify-between px-5">
-        <Link href="/play" className="wordmark text-[var(--color-ink)]">
-          Cornell Racket Queue
+    <header className="sticky top-0 z-[var(--z-nav)] border-b border-[var(--color-border)] bg-[var(--color-background)]/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
+        <Link href="/play" className="title flex min-h-11 shrink-0 items-center text-lg">
+          <span className="hidden sm:inline">Cornell Racket Queue</span>
+          <span className="sm:hidden">CRQ</span>
         </Link>
-        <nav className="flex items-center gap-5">
+
+        <nav aria-label="Main" className="flex items-center gap-1">
           {LINKS.map((link) => {
             const active = pathname.startsWith(link.href);
             return (
@@ -48,25 +59,31 @@ export function Nav() {
                 href={link.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "label transition-colors duration-150",
+ "ui-text relative flex min-h-11 items-center rounded-[var(--radius-md)] px-3 text-sm",
+ "transition-colors duration-[var(--dur-fast)]",
                   active
-                    ? "text-[var(--color-accent)]"
-                    : "text-[var(--color-gray)] hover:text-[var(--color-ink)]"
+                    ? "font-bold text-[var(--color-primary)]"
+                    : "font-medium text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
                 )}
               >
                 {link.label}
+                {active ? (
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-3 bottom-1 h-0.5 rounded-full bg-[var(--color-primary)]"
+                  />
+                ) : null}
               </Link>
             );
           })}
+
+          <span aria-hidden className="mx-1 h-6 w-px bg-[var(--color-border)]" />
+
           <ThemeToggle />
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="label text-[var(--color-gray)] transition-[color,transform] duration-150 ease-[var(--ease-out-strong)] hover:text-[var(--color-ink)] active:scale-[0.97] disabled:opacity-40"
-          >
-            {signingOut ? "Signing out" : "Sign out"}
-          </button>
+          <Button variant="ghost" size="sm" onClick={handleSignOut} loading={signingOut}>
+            <span className="hidden sm:inline">Sign out</span>
+            <span className="sm:hidden">Out</span>
+          </Button>
         </nav>
       </div>
     </header>

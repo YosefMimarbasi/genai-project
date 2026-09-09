@@ -32,21 +32,21 @@ export default async function MatchesPage() {
     .order("agreed_time", { ascending: true });
 
   return (
-    <section className="py-6">
-      <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">Matches.</h1>
+    <section>
+      <h1 className="display text-[clamp(2.25rem,7vw,4rem)]">Matches</h1>
 
       {matches && matches.length > 0 ? (
-        <ul className="mt-12">
+        <ul className="mt-10 flex flex-col gap-3">
           {matches.map((match) => (
             <li key={match.id}>
               <Link
                 href={`/matches/${match.id}`}
-                className="neu-e1 neu-lift group mb-3 grid items-baseline gap-2 rounded-[var(--radius-lg)] px-5 py-5 sm:grid-cols-[1fr_auto] sm:gap-6"
+                className="surface group flex min-h-16 flex-wrap items-center justify-between gap-3 p-5 shadow-[var(--shadow-1)] transition-[box-shadow,border-color] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-2)]"
               >
-                <span className="text-lg font-bold tracking-[-0.015em] group-hover:text-[var(--color-accent)]">
+                <span className="title text-lg group-hover:text-[var(--color-primary)]">
                   {match.agreed_location}
                 </span>
-                <span className="label text-[var(--color-gray)]">
+                <span className="ui-text tnum text-sm text-[var(--color-muted-foreground)]">
                   {formatWhen(match.agreed_time)}
                 </span>
               </Link>
@@ -54,14 +54,14 @@ export default async function MatchesPage() {
           ))}
         </ul>
       ) : (
-        <div className="mt-12 pt-10">
-          <p className="max-w-[42ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
-            No confirmed matches yet. Ready up and you'll see them here once both of you accept.
+        /* §8 empty-states — say what's missing and give the action. */
+        <div className="surface mt-10 flex flex-col items-start p-8">
+          <h2 className="title text-xl">No confirmed matches yet</h2>
+          <p className="mt-2 max-w-[46ch] text-[var(--color-muted-foreground)]">
+            Ready up and you'll see them here once both of you accept.
           </p>
-          <Link href="/play">
-            <Button size="lg" className="mt-8">
-              Ready up
-            </Button>
+          <Link href="/play" className="mt-6">
+            <Button size="lg">Ready up</Button>
           </Link>
         </div>
       )}

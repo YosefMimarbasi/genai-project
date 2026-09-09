@@ -31,7 +31,7 @@ export function MatchProposal({
 
   // Callers pass an inline arrow, so `onDeclined` has a new identity every
   // render. Depending on it directly would re-run the expiry effect on each
-  // render once the clock hit zero — firing the toast repeatedly. Hold it in
+  // render once the clock hit zero, firing the toast repeatedly. Hold it in
   // a ref and latch the expiry so it runs exactly once.
   const onDeclinedRef = useRef(onDeclined);
   onDeclinedRef.current = onDeclined;
@@ -81,13 +81,10 @@ export function MatchProposal({
 
   if (waitingOnThem) {
     return (
-      <section className="py-10">
-        <h1 className="display -ml-[0.03em] text-[clamp(2.75rem,8vw,6rem)]">
-          Waiting on
-          <br />
-          them.
-        </h1>
-        <p className="mt-8 max-w-[40ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
+      <section>
+        <p className="eyebrow text-[var(--color-primary)]">Accepted</p>
+        <h1 className="display mt-5 text-[clamp(2.25rem,7vw,4rem)]">Waiting on them.</h1>
+        <p className="mt-6 max-w-[46ch] text-lg text-[var(--color-muted-foreground)]">
           You're in. As soon as they accept too, the match is confirmed and you'll be able to
           message each other.
         </p>
@@ -95,46 +92,73 @@ export function MatchProposal({
     );
   }
 
-  return (
-    <section className="py-10">
-      <p className="label text-[var(--color-accent)]">Match found: {sport}</p>
+  const pct = (remaining / WINDOW_SECONDS) * 100;
+  const urgent = remaining <= 15;
 
-      {/* A single oversized numeral carrying the block, per the recipe. */}
-      <div className="mt-4 flex items-baseline gap-6">
-        <span className="display text-[clamp(5rem,20vw,13rem)] tabular-nums">{remaining}</span>
-        <span className="label text-[var(--color-gray)]">seconds to answer</span>
-      </div>
+  return (
+    <section>
+      <p className="eyebrow text-[var(--color-primary)]">Match found · {sport}</p>
+
+      <h1 className="display mt-5 text-[clamp(2.25rem,7vw,4rem)]">
+        Someone's free right now.
+      </h1>
 
       {/*
-        Constant, measured motion → linear easing, and it runs as a CSS
-        animation so it stays smooth while the page is busy. Draining to
-        zero is a measurement, not an entrance, so scaleX(0) is correct here.
+        §10-adjacent: the countdown is the critical state on this screen, so
+        it is announced as well as drawn. aria-live="assertive" is warranted
+        here (unlike most live regions) because a missed deadline loses the
+        match outright.
       */}
-      <div className="neu-pressed mt-4 h-3 w-full overflow-hidden rounded-[var(--radius-pill)]">
+      <div className="mt-8 flex items-center gap-4">
+        <span
+          className={cn2(
+            "display tnum text-[clamp(3rem,12vw,5.5rem)] leading-none transition-colors duration-[var(--dur-base)]",
+            urgent ? "text-[var(--color-destructive)]" : "text-[var(--color-foreground)]"
+          )}
+        >
+          {remaining}
+        </span>
+        <span className="ui-text text-sm font-semibold text-[var(--color-muted-foreground)]">
+          seconds
+          <br />
+          to answer
+        </span>
+      </div>
+      <p className="sr-only" role="status" aria-live="assertive">
+        {remaining <= 10 ? `${remaining} seconds left to answer` : ""}
+      </p>
+
+      {/* Width is driven by a style transform-free scaleX so it stays off
+          the layout path (§7 layout-shift-avoid). */}
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-[var(--radius-pill)] bg-[var(--color-muted)]">
         <div
-          className="h-full origin-left rounded-[var(--radius-pill)] bg-[var(--color-accent)] motion-reduce:hidden"
-          style={{ animation: `drain ${WINDOW_SECONDS}s linear forwards` }}
+          className={cn2(
+            "h-full origin-left rounded-[var(--radius-pill)] transition-transform duration-1000 ease-linear",
+            urgent ? "bg-[var(--color-destructive)]" : "bg-[var(--color-primary)]"
+          )}
+          style={{ transform: `scaleX(${pct / 100})` }}
         />
       </div>
-      <style>{`@keyframes drain { from { transform: scaleX(1) } to { transform: scaleX(0) } }`}</style>
 
-      <p className="mt-10 max-w-[44ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
+      <p className="mt-8 max-w-[50ch] text-lg text-[var(--color-muted-foreground)]">
         Someone at your tier is free in the same window. Both of you have to accept. If either
         declines or runs out the clock, you both go back in the queue.
       </p>
 
-      <div className="mt-10 flex flex-wrap gap-3 pt-8">
+      {/* §8 destructive-emphasis — decline is visually separated and
+          subordinate; accept is the single primary action. */}
+      <div className="mt-10 flex flex-wrap gap-3 border-t border-[var(--color-border)] pt-8">
         <Button
           size="lg"
           loading={submitting === "accepted"}
           disabled={submitting !== null}
           onClick={() => respond("accepted")}
         >
-          Accept
+          Accept match
         </Button>
         <Button
-          variant="secondary"
           size="lg"
+          variant="ghost"
           loading={submitting === "declined"}
           disabled={submitting !== null}
           onClick={() => respond("declined")}
@@ -144,4 +168,9 @@ export function MatchProposal({
       </div>
     </section>
   );
+}
+
+// Local alias so this file doesn't need the shared helper import twice.
+function cn2(...parts: (string | false | undefined)[]) {
+  return parts.filter(Boolean).join(" ");
 }

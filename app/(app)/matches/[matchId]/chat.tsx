@@ -106,16 +106,16 @@ export function Chat({
   return (
     <section className="flex min-h-[calc(100dvh-8.5rem)] flex-col py-6">
       <header className="pb-6">
-        <Link href="/matches" className="label text-[var(--color-gray)] hover:text-[var(--color-ink)]">
+        <Link href="/matches" className="eyebrow text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
           All matches
         </Link>
-        <h1 className="display-sm mt-4 text-[clamp(1.75rem,5vw,2.75rem)]">{agreedLocation}</h1>
-        <p className="label mt-2 text-[var(--color-accent)]">{formatWhen(agreedTime)}</p>
+        <h1 className="title mt-4 text-[clamp(1.75rem,5vw,2.75rem)]">{agreedLocation}</h1>
+        <p className="eyebrow mt-2 text-[var(--color-primary)]">{formatWhen(agreedTime)}</p>
       </header>
 
       <div ref={listRef} className="flex-1 overflow-y-auto py-8">
         {messages.length === 0 ? (
-          <p className="max-w-[40ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
+          <p className="max-w-[40ch] text-[1.0625rem] leading-[1.5] text-[var(--color-muted-foreground)]">
             You matched. Say hi and sort out exactly when and where.
           </p>
         ) : (
@@ -127,15 +127,15 @@ export function Chat({
                   key={message.id}
                   className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
                 >
-                  <span className="label text-[var(--color-gray)]">
+                  <span className="eyebrow text-[var(--color-muted-foreground)]">
                     {mine ? "You" : "Them"} · {formatTime(message.created_at)}
                   </span>
                   <p
                     className={cn(
-                      "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
+ "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
                       mine
-                        ? "bg-[var(--color-accent)] text-white shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)]"
-                        : "neu-e1"
+                        ? "bg-[var(--color-primary)] text-white "
+                        : "surface"
                     )}
                   >
                     {message.content}
@@ -148,8 +148,8 @@ export function Chat({
       </div>
 
       {suggestion?.hasProposal ? (
-        <div className="neu-e2 mb-4 rounded-[var(--radius-lg)] p-4">
-          <p className="label text-[var(--color-accent)]">Detected in that message</p>
+        <div className="surface mb-4 rounded-[var(--radius-lg)] p-4">
+          <p className="eyebrow text-[var(--color-primary)]">Detected in that message</p>
           <p className="mt-2 text-[0.9375rem] font-bold">
             {[suggestion.date, suggestion.time, suggestion.court].filter(Boolean).join(" · ")}
           </p>
@@ -159,7 +159,7 @@ export function Chat({
             yet (see docs/frontend-build-prompt.md). A button that 404s
             would be worse than saying so.
           */}
-          <p className="mt-2 text-xs text-[var(--color-gray)]">
+          <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
             Confirming this into the match isn't wired up yet; the backend route is still to be
             built. For now, agree in the thread.
           </p>
@@ -173,10 +173,10 @@ export function Chat({
           placeholder="Say when works…"
           aria-label="Message"
           className={cn(
-            "neu-pressed h-12 flex-1 rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-ink)]",
-            "outline-none transition-shadow duration-150 ease-[var(--ease-out-strong)]",
-            "focus:ring-2 focus:ring-[var(--color-accent)]",
-            "placeholder:text-[color-mix(in_oklab,var(--color-gray)_70%,transparent)]"
+ "surface h-12 flex-1 rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-foreground)]",
+ "outline-none transition-shadow duration-150 ease-[var(--ease-out)]",
+ "focus:ring-2 focus:ring-[var(--color-primary)]",
+ "placeholder:"
           )}
         />
         <Button type="submit" loading={sending} disabled={!draft.trim()}>

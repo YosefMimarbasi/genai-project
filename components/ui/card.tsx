@@ -1,7 +1,6 @@
 import { cn } from "@/lib/cn";
 
-/** A raised panel extruded from the ground. No border: the shadow pair is
- *  what separates it, which is the whole point of the style. */
+/** §4 elevation-consistent — cards use one step of the shared scale. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("neu-e2 rounded-[var(--radius-lg)] p-6", className)} {...props} />;
+  return <div className={cn("surface p-6 shadow-[var(--shadow-1)]", className)} {...props} />;
 }

@@ -33,9 +33,9 @@ export default function TermsPage() {
         </p>
         <List
           items={[
-            "Play at the public courts listed in the app, during the hours they are open.",
-            "Tell someone you trust where you are going and who you are meeting.",
-            "You are free to leave at any point, for any reason, without explaining yourself.",
+ "Play at the public courts listed in the app, during the hours they are open.",
+ "Tell someone you trust where you are going and who you are meeting.",
+ "You are free to leave at any point, for any reason, without explaining yourself.",
             <>
               If someone makes you feel unsafe, stop and report it to us at{" "}
               <ContactEmail />. In an emergency call 911, or Cornell Police on (607) 255-1111.
@@ -48,10 +48,10 @@ export default function TermsPage() {
         <p>Do not use this app to harass, threaten, impersonate, or spam anyone. Specifically:</p>
         <List
           items={[
-            "Do not send abusive, harassing, or sexual messages.",
-            "Do not use the app to advertise, recruit, or sell anything.",
-            "Do not repeatedly accept matches you have no intention of showing up for.",
-            "Do not attempt to access another student's account or data.",
+ "Do not send abusive, harassing, or sexual messages.",
+ "Do not use the app to advertise, recruit, or sell anything.",
+ "Do not repeatedly accept matches you have no intention of showing up for.",
+ "Do not attempt to access another student's account or data.",
           ]}
         />
         <p>

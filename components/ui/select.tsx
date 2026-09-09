@@ -18,10 +18,10 @@ export interface SelectProps {
 }
 
 /*
- * Trigger is raised (pressable), popup is raised above the ground. The
- * popup scales in from the trigger via `--transform-origin`, not from
- * centre — centre scaling is reserved for modals, which have no trigger to
- * anchor to. 180ms sits inside the 150-250ms dropdown band.
+ * §7 modal-motion — the popup scales from its trigger via
+ *   --transform-origin, giving the open a spatial cause.
+ * §7 duration-timing — 220ms, inside the micro band.
+ * §2 touch-target-size — 48px trigger, 44px+ options.
  */
 export function Select({
   label,
@@ -33,7 +33,11 @@ export function Select({
 }: SelectProps) {
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      {label ? <span className="label text-[var(--color-gray)]">{label}</span> : null}
+      {label ? (
+        <span className="ui-text text-sm font-semibold text-[var(--color-foreground)]">
+          {label}
+        </span>
+      ) : null}
       <BaseSelect.Root
         items={options}
         value={value ?? null}
@@ -41,30 +45,33 @@ export function Select({
       >
         <BaseSelect.Trigger
           className={cn(
-            "neu-e2 flex h-12 items-center justify-between gap-2",
-            "rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-ink)]",
-            "transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)]",
-            "active:scale-[0.99]",
-            "data-[popup-open]:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
-            "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]"
+ "ui-text flex h-12 cursor-pointer items-center justify-between gap-2",
+ "rounded-[var(--radius-md)] border-2 border-[var(--color-border-strong)]",
+ "bg-[var(--color-card)] px-4 text-base text-[var(--color-foreground)]",
+ "transition-[border-color,transform] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+ "hover:border-[var(--color-foreground)] active:scale-[0.99]",
+ "data-[popup-open]:border-[var(--color-primary)]",
+ "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]"
           )}
         >
           <BaseSelect.Value placeholder={placeholder} />
-          <BaseSelect.Icon className="text-[var(--color-gray)]">▾</BaseSelect.Icon>
+          <BaseSelect.Icon aria-hidden>
+            <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="m4 6 4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </BaseSelect.Icon>
         </BaseSelect.Trigger>
+
         <BaseSelect.Portal>
-          <BaseSelect.Positioner sideOffset={10} className="z-50">
+          <BaseSelect.Positioner sideOffset={8} className="z-[var(--z-popover)]">
             <BaseSelect.Popup
               className={cn(
-                // Floats above everything else, so it takes the top tier.
-                "neu-e3 min-w-[var(--anchor-width)] overflow-hidden",
-                "rounded-[var(--radius-md)] p-2",
-                "origin-[var(--transform-origin)]",
-                "transition-[transform,opacity] duration-[180ms] ease-[var(--ease-out-strong)]",
-                // Never scale from 0 — nothing in the real world appears
-                // from nothing.
-                "data-[starting-style]:scale-[0.97] data-[starting-style]:opacity-0",
-                "data-[ending-style]:scale-[0.97] data-[ending-style]:opacity-0"
+ "surface min-w-[var(--anchor-width)] overflow-hidden p-1.5 shadow-[var(--shadow-3)]",
+ "origin-[var(--transform-origin)]",
+ "transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+                // Never from scale(0) — nothing appears out of nothing.
+ "data-[starting-style]:scale-[0.96] data-[starting-style]:opacity-0",
+ "data-[ending-style]:scale-[0.96] data-[ending-style]:opacity-0"
               )}
             >
               <BaseSelect.List>
@@ -73,14 +80,18 @@ export function Select({
                     key={option.value}
                     value={option.value}
                     className={cn(
-                      "flex cursor-pointer items-center justify-between rounded-[var(--radius-sm)]",
-                      "px-3 py-2.5 text-sm outline-none",
-                      "transition-colors duration-100",
-                      "data-[highlighted]:bg-[var(--color-accent)] data-[highlighted]:text-white"
+ "ui-text flex min-h-11 cursor-pointer items-center justify-between gap-3",
+ "rounded-[var(--radius-sm)] px-3 text-[0.9375rem] outline-none",
+ "transition-colors duration-[var(--dur-fast)]",
+ "data-[highlighted]:bg-[var(--color-primary)] data-[highlighted]:text-[var(--color-on-primary)]"
                     )}
                   >
                     <BaseSelect.ItemText>{option.label}</BaseSelect.ItemText>
-                    <BaseSelect.ItemIndicator>✓</BaseSelect.ItemIndicator>
+                    <BaseSelect.ItemIndicator aria-hidden>
+                      <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="m3 8 3.5 3.5L13 5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </BaseSelect.ItemIndicator>
                   </BaseSelect.Item>
                 ))}
               </BaseSelect.List>

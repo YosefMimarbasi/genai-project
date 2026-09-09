@@ -3,61 +3,48 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 /*
- * Neumorphic buttons: raised at rest, physically pressed in on :active.
- * The extrusion communicates "this is pressable"; it never communicates
- * *state*, which is why the primary variant is a solid Cornell Red fill
- * rather than a shadow difference.
- *
- * focus-visible keeps a solid high-contrast outline. A soft shadow ring
- * is the usual neumorphic focus treatment and it is not perceivable
- * enough to be the only focus indicator.
+ * §2 touch-target-size — every size meets the 44px minimum, including sm.
+ * §2 loading-buttons  — disabled + spinner while async work is in flight.
+ * §4 primary-action   — one primary per screen; secondary is subordinate.
+ * §7 duration-timing  — 220ms, inside the 150-300ms micro band.
+ * §7 scale-feedback   — 0.97 press, restored on release.
  */
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2",
-    "font-semibold whitespace-nowrap",
-    "rounded-[var(--radius-md)]",
-    "transition-[transform,box-shadow,background-color,color] duration-[160ms] ease-[var(--ease-out-strong)]",
-    "active:scale-[0.98]",
-    "disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none",
-    "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-accent)]",
+ "ui-text inline-flex items-center justify-center gap-2",
+ "font-semibold whitespace-nowrap cursor-pointer select-none",
+ "rounded-[var(--radius-md)]",
+ "transition-[transform,background-color,color,border-color,box-shadow]",
+ "duration-[var(--dur-base)] ease-[var(--ease-out)]",
+ "active:scale-[0.97]",
+    // §8 disabled-states — reduced opacity + not-allowed + no pointer events.
+ "disabled:pointer-events-none disabled:opacity-45",
+ "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
   ],
   {
     variants: {
       variant: {
-        primary: [
-          "bg-[var(--color-accent)] text-white",
-          "shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)]",
-          "hover:bg-[var(--color-accent-hover)]",
-          "active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]",
-        ],
-        secondary: [
-          "neu-e2 text-[var(--color-ink)]",
-          "hover:text-[var(--color-accent)]",
-          "active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
-        ],
-        ghost: [
-          "text-[var(--color-gray)]",
-          "hover:text-[var(--color-ink)]",
-          "active:shadow-[inset_2px_2px_5px_var(--neu-dark),inset_-2px_-2px_5px_var(--neu-light)]",
-        ],
-        danger: [
-          "bg-[var(--color-danger)] text-white",
-          "shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)]",
-          "hover:bg-[var(--color-accent-hover)]",
-          "active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]",
-        ],
+        primary:
+ "bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[var(--shadow-1)] hover:bg-[var(--color-primary-hover)] hover:shadow-[var(--shadow-2)]",
+        // The energetic accent. Ink on lime is 13:1, so it stays legible.
+        accent:
+ "bg-[var(--color-primary)] text-[var(--color-on-accent)] shadow-[var(--shadow-1)] hover:bg-[var(--color-primary-hover)] hover:shadow-[var(--shadow-2)]",
+        secondary:
+ "border-2 border-[var(--color-foreground)] bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-foreground)] hover:text-[var(--color-background)]",
+        ghost:
+ "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+        destructive:
+ "bg-[var(--color-destructive)] text-[var(--color-on-destructive)] hover:brightness-110",
       },
       size: {
-        sm: "h-9 px-4 text-[0.8125rem]",
-        md: "h-11 px-5 text-sm",
-        lg: "h-14 px-8 text-base",
+        // min-h-11 = 44px, the floor for every size.
+        sm: "min-h-11 px-4 text-sm",
+        md: "min-h-12 px-5 text-[0.9375rem]",
+        lg: "min-h-14 px-8 text-base",
       },
+      full: { true: "w-full", false: "" },
     },
-    defaultVariants: {
-      variant: "primary",
-      size: "md",
-    },
+    defaultVariants: { variant: "primary", size: "md", full: false },
   }
 );
 
@@ -68,25 +55,23 @@ export interface ButtonProps
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading, disabled, children, ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        className={cn(buttonVariants({ variant, size }), className)}
-        disabled={disabled || loading}
-        aria-busy={loading}
-        {...props}
-      >
-        {loading ? (
-          <span
-            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
-            style={{ animationDuration: "600ms" }}
-            aria-hidden
-          />
-        ) : null}
-        {children}
-      </button>
-    );
-  }
+  ({ className, variant, size, full, loading, disabled, children, ...props }, ref) => (
+    <button
+      ref={ref}
+      className={cn(buttonVariants({ variant, size, full }), className)}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...props}
+    >
+      {loading ? (
+        <span
+          className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+          style={{ animationDuration: "600ms" }}
+          aria-hidden
+        />
+      ) : null}
+      {children}
+    </button>
+  )
 );
 Button.displayName = "Button";

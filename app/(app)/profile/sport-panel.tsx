@@ -51,7 +51,7 @@ export function SportPanel({
     setRationale(null);
     try {
       const response = await apiFetchJson<SkillNormalizeResponse>(
-        "/api/onboarding/skill-normalize",
+ "/api/onboarding/skill-normalize",
         {
           method: "POST",
           body: JSON.stringify({ sport, experienceDescription: experience }),
@@ -104,8 +104,8 @@ export function SportPanel({
     <div className="mt-12">
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
         <div>
-          <h2 className="display-sm text-[1.75rem]">{sport}</h2>
-          <p className="mt-2 max-w-[46ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
+          <h2 className="title text-[1.75rem]">{sport}</h2>
+          <p className="mt-2 max-w-[46ch] text-[0.9375rem] leading-[1.55] text-[var(--color-muted-foreground)]">
             A sentence or two about how you play is enough. Mention matches, leagues, or just how
             long you've played.
           </p>
@@ -125,12 +125,12 @@ export function SportPanel({
               Get a tier suggestion
             </Button>
             {rationale ? (
-              <p className="max-w-[36ch] text-xs text-[var(--color-gray)]">{rationale}</p>
+              <p className="max-w-[36ch] text-xs text-[var(--color-muted-foreground)]">{rationale}</p>
             ) : null}
           </div>
 
           <div className="mt-8">
-            <p className="label mb-3 text-[var(--color-gray)]">
+            <p className="eyebrow mb-3 text-[var(--color-muted-foreground)]">
               {confirmed ? "Saved tier" : "Your tier"}
             </p>
             <TierSelector value={selectedTier} onChange={setSelectedTier} confirmed={confirmed} />
@@ -144,10 +144,10 @@ export function SportPanel({
         </div>
 
         <aside className="hidden lg:block">
-          <p className="label text-[var(--color-gray)]">{courtDimensions(sport)}</p>
+          <p className="eyebrow text-[var(--color-muted-foreground)]">{courtDimensions(sport)}</p>
           <CourtDiagram
             sport={sport}
-            className="neu-engraved mt-4 w-full text-[color-mix(in_oklab,var(--color-ink)_40%,transparent)]"
+            className=" mt-4 w-full "
           />
         </aside>
       </div>

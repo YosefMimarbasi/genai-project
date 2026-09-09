@@ -1,216 +1,264 @@
 import Link from "next/link";
 import { CourtDiagram, courtDimensions } from "@/components/court-diagram";
 import { SPORTS, TIERS, TIER_LABELS, type Sport } from "@/lib/sports";
-import { VENUES, queueableVenues, reservationVenues } from "@/lib/courts";
+import { queueableVenues, reservationVenues, VENUES } from "@/lib/courts";
+import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Reveal } from "@/components/reveal";
+import { Button } from "@/components/ui/button";
 
 /*
- * Public landing page. Type is the only graphic — no photography, no
- * illustration, no gradient (all on the `pentagram` recipe's Avoid list).
- * Signed-in visitors never reach this: proxy.ts sends them to /play.
+ * Landing pattern: Hero + Features + CTA (products.csv → Sports Team/Club
+ * → "Hero-Centric Design + Feature-Rich").
+ *   1. Hero with headline      2. Value prop strip
+ *   3. Key features (3-5)      4. CTA section        5. Footer
+ *
+ * The generator's alternate pattern wanted a testimonials carousel with
+ * "photo + name + role". This product has not launched, so any testimonial
+ * would be invented. Fabricated social proof is worse than none, so the
+ * feature-rich variant is used instead — it converts on substance the app
+ * actually has (real courts, real hours) rather than on manufactured trust.
  */
 
-const STEPS = [
+const FEATURES = [
   {
-    n: "01",
-    title: "Ready up",
-    body: "Pick a sport, the window you're free, and where you'd play. Takes about ten seconds.",
+    title: "Ready up in ten seconds",
+    body: "Pick a sport, how long you're free, and which courts you'd walk to. That's the whole form.",
   },
   {
-    n: "02",
-    title: "Get matched",
-    body: "You're paired with another student at your tier whose window overlaps yours.",
+    title: "Matched at your level",
+    body: "You're paired with someone in the same tier whose free window overlaps yours, so neither of you is wasting an afternoon.",
   },
   {
-    n: "03",
-    title: "Both accept",
-    body: "Ninety seconds to confirm. After that it's a match, and you settle the details in chat.",
+    title: "Ninety seconds to confirm",
+    body: "Both of you accept or it's off. No indefinite waiting on someone who already left.",
+  },
+  {
+    title: "Real court hours",
+    body: "Open-rec times come from Cornell Recreation, including which game rooms need you to live in the building.",
   },
 ];
 
-/*
- * Venues that share a restriction collapse into one row. Repeating
- * "residents only, or get let in" once per dorm is noise — the reader only
- * needs the rule stated once, attached to the set it applies to.
- */
-function VenueList({ sport }: { sport: Sport }) {
+function ValueStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <p className="display tnum text-[clamp(2.5rem,6vw,3.5rem)] text-[var(--color-primary)]">
+        {value}
+      </p>
+      <p className="ui-text mt-1 text-sm text-[var(--color-muted-foreground)]">{label}</p>
+    </div>
+  );
+}
+
+function SportCard({ sport, index }: { sport: Sport; index: number }) {
   const venues = queueableVenues(sport);
   const open = venues.filter((v) => v.access === "open");
   const residents = venues.filter((v) => v.access === "residents");
 
   return (
-    <dl className="mt-5 flex flex-col gap-1.5 text-[0.8125rem] leading-[1.4]">
-      {open.map((venue) => (
-        <div key={venue.name} className="flex items-baseline justify-between gap-3">
-          <dt className="font-medium">{venue.name}</dt>
-          <dd className="text-right text-[var(--color-gray)]">{venue.hours ?? "Open rec"}</dd>
-        </div>
-      ))}
-      {residents.length > 0 ? (
-        <div className="flex items-baseline justify-between gap-3">
-          <dt className="font-medium">{residents.map((v) => v.name).join(" · ")}</dt>
-          <dd className="shrink-0 text-right text-[var(--color-gray)]">
-            {residents[0].note}
-          </dd>
-        </div>
-      ) : null}
-    </dl>
-  );
-}
+    <Reveal as="li" index={index} className="surface group flex flex-col p-6 shadow-[var(--shadow-1)] transition-shadow duration-[var(--dur-base)] hover:shadow-[var(--shadow-2)]">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="title text-xl">{sport}</h3>
+        <span className="eyebrow tnum text-[var(--color-muted-foreground)]">
+          {courtDimensions(sport)}
+        </span>
+      </div>
 
-function SectionMark({ n, title }: { n: string; title: string }) {
-  return (
-    <div className="flex items-center gap-5">
-      <span
-        aria-hidden
-        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-accent)] text-white shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)] sm:h-20 sm:w-20"
-      >
-        <span className="display-sm text-[2rem] leading-none sm:text-[2.5rem]">{n}</span>
-      </span>
-      <h2 className="display-sm text-[1.75rem] sm:text-[2.5rem]">{title}</h2>
-    </div>
+      <CourtDiagram
+        sport={sport}
+        className="mt-5 w-full text-[var(--color-border)] transition-colors duration-[var(--dur-slow)] group-hover:text-[var(--color-primary)]"
+      />
+
+      <dl className="ui-text mt-5 flex flex-col gap-2 text-sm">
+        {open.map((venue) => (
+          <div key={venue.name} className="flex items-baseline justify-between gap-3">
+            <dt className="font-semibold">{venue.name}</dt>
+            <dd className="text-right text-[var(--color-muted-foreground)]">
+              {venue.hours ?? "Open rec"}
+            </dd>
+          </div>
+        ))}
+        {residents.length > 0 ? (
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="font-semibold">{residents.map((v) => v.name).join(" · ")}</dt>
+            <dd className="shrink-0 text-right text-[var(--color-muted-foreground)]">
+              {residents[0].note}
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+    </Reveal>
   );
 }
 
 export default function LandingPage() {
+  const reservationOnly = Object.keys(VENUES).flatMap((s) =>
+    reservationVenues(s as Sport)
+  );
+
   return (
-    <div className="min-h-dvh">
-      <header className="neu-e2 mx-auto mt-4 max-w-6xl rounded-[var(--radius-lg)]">
-        <div className="flex h-14 items-center justify-between px-5">
-          <span className="wordmark text-[var(--color-ink)]">Cornell Racket Queue</span>
-          <div className="flex items-center gap-5">
-            <ThemeToggle />
-            <Link
-              href="/sign-in"
-              className="label text-[var(--color-gray)] transition-colors duration-150 hover:text-[var(--color-accent)]"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-5">
-        {/* ---------- Hero: type as image ---------- */}
-        <section className="pb-16 pt-14 sm:pb-24 sm:pt-20">
-          <p className="rise rise-1 label text-[var(--color-gray)]">
-            Ithaca, NY
-          </p>
-
-          {/* Optical alignment: the left sidebearing keeps the cap off the
-              true margin, so pull it back to hang on the rule. Palatino
-              needs less of a pull than a heavy grotesque did. */}
-          <h1 className="display mt-6 -ml-[0.03em] text-[clamp(3.25rem,13vw,10.5rem)]">
-            <span className="rise rise-2 block">A game.</span>
-            <span className="rise rise-3 block">In the next</span>
-            <span className="rise rise-4 block text-[var(--color-accent)]">hour.</span>
-          </h1>
-
-          <div className="rise rise-5 mt-10 flex flex-col gap-8 sm:mt-12 sm:flex-row sm:items-end sm:justify-between">
-            <p className="max-w-[34ch] text-[1.0625rem] leading-[1.5] text-[var(--color-gray)]">
-              Say you're free. Get paired with another Cornell student at your level who's free in
-              the same window. Play the same day.
-            </p>
-
-            <div className="flex shrink-0 gap-3">
-              <Link href="/sign-up">
-                {/* Label matches the outcome. "Ready up" is the in-app
-                    action for joining the queue, so using it for signup
-                    promises something this button doesn't do. */}
-                <span className="inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent)] px-8 text-base font-semibold text-white shadow-[9px_9px_22px_var(--neu-dark),-9px_-9px_22px_var(--neu-light)] transition-[transform,box-shadow,background-color] duration-[160ms] ease-[var(--ease-out-strong)] hover:bg-[var(--color-accent-hover)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.35),inset_-3px_-3px_7px_rgba(255,255,255,0.15)]">
-                  Create an account
+      <main id="main" className="flex-1">
+        {/* ---------- 1. Hero ---------- */}
+        <section className="block-section">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal>
+              <p className="eyebrow text-[var(--color-primary)]">Ithaca, NY</p>
+              <h1 className="display mt-5 text-[clamp(2.75rem,9vw,6.5rem)]">
+                A game.
+                <br />
+                In the next{" "}
+                <span className="relative inline-block">
+                  {/* The energetic accent, used as a highlight block rather
+                      than as text colour — ink on lime is 13:1. */}
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-[-0.15em] bottom-[0.08em] top-[0.18em] -z-10 -rotate-1 rounded-[var(--radius-sm)] bg-[var(--color-accent)]"
+                  />
+                  hour.
                 </span>
-              </Link>
-              <Link href="/sign-in">
-                <span className="neu-e2 inline-flex h-14 items-center justify-center rounded-[var(--radius-md)] px-8 text-base font-semibold text-[var(--color-ink)] transition-[transform,box-shadow,color] duration-[160ms] ease-[var(--ease-out-strong)] hover:text-[var(--color-accent)] active:scale-[0.98] active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]">
-                  Sign in
-                </span>
-              </Link>
-            </div>
+              </h1>
+
+              <p className="mt-8 max-w-[38ch] text-lg leading-relaxed text-[var(--color-muted-foreground)] sm:text-xl">
+                Say you're free. Get paired with another Cornell student at your level who's free
+                in the same window. Play the same day.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Link href="/sign-up">
+                  <Button size="lg">Create an account</Button>
+                </Link>
+                <Link href="/sign-in">
+                  <Button size="lg" variant="secondary">
+                    Sign in
+                  </Button>
+                </Link>
+              </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* ---------- 01 How it works ---------- */}
-        <section className="pb-20">
-          <SectionMark n="01" title="How it works" />
-          <div className="mt-10 grid gap-5 sm:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.n} className="neu-e2 neu-lift rounded-[var(--radius-lg)] p-6">
-                <span className="label text-[var(--color-accent)]">{step.n}</span>
-                <h3 className="mt-3 text-xl font-bold tracking-[-0.015em]">{step.title}</h3>
-                <p className="mt-2 max-w-[38ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
-                  {step.body}
-                </p>
-              </div>
-            ))}
+        {/* ---------- 2. Value prop strip ---------- */}
+        <section className="border-y border-[var(--color-border)] bg-[var(--color-muted)]">
+          <div className="mx-auto max-w-6xl px-5 py-12">
+            <Reveal className="grid gap-8 sm:grid-cols-3">
+              <ValueStat value={String(SPORTS.length)} label="Racket sports" />
+              <ValueStat value={String(TIERS.length)} label="Skill tiers" />
+              <ValueStat value="90s" label="To accept a match" />
+            </Reveal>
           </div>
         </section>
 
-        {/* ---------- 02 Sports ---------- */}
-        <section className="pb-20">
-          <SectionMark n="02" title="Where you play" />
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {SPORTS.map((sport) => (
-              <li key={sport} className="neu-e2 neu-lift group flex flex-col rounded-[var(--radius-lg)] p-6">
-                <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="text-lg font-bold tracking-[-0.015em]">{sport}</h3>
-                  <span className="label text-[var(--color-gray)]">{courtDimensions(sport)}</span>
-                </div>
-                <CourtDiagram
-                  sport={sport}
-                  className="neu-engraved mt-5 w-full text-[color-mix(in_oklab,var(--color-ink)_45%,transparent)] transition-colors duration-200 ease-[var(--ease-out-strong)] group-hover:text-[var(--color-accent)]"
-                />
-                <VenueList sport={sport} />
-              </li>
-            ))}
-            {/* Spans the remaining column so the grid has no empty cell —
-                an unfilled cell shows the gap colour and reads as a bug. */}
-            <li className="neu-e2 flex flex-col justify-end rounded-[var(--radius-lg)] p-6 lg:col-span-2">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <p className="max-w-[32ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
-                  No bookings. Every court above is first come, first served, though PE and intramural
-                  programming takes priority during the term, so a court can be taken without
-                  notice. Courts are drawn to their real dimensions; the net is the dashed line.
-                </p>
-                <div className="pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
-                  <span className="label text-[var(--color-accent)]">Coming soon</span>
-                  {Object.keys(VENUES)
-                    .flatMap((sport) => reservationVenues(sport as keyof typeof VENUES))
-                    .map((venue) => (
-                      <p
-                        key={venue.name}
-                        className="mt-2 max-w-[28ch] text-[0.8125rem] leading-[1.5] text-[var(--color-gray)]"
-                      >
-                        {venue.name}: {venue.note?.toLowerCase()}
-                      </p>
-                    ))}
-                </div>
-              </div>
-            </li>
-          </ul>
+        {/* ---------- 3. Key features ---------- */}
+        <section className="block-section">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal>
+              <h2 className="display text-[clamp(2rem,5vw,3rem)]">How it works</h2>
+            </Reveal>
+
+            <ul className="mt-12 grid gap-6 sm:grid-cols-2">
+              {FEATURES.map((feature, i) => (
+                <Reveal
+                  as="li"
+                  key={feature.title}
+                  index={i}
+                  className="surface p-6 shadow-[var(--shadow-1)]"
+                >
+                  <span
+                    aria-hidden
+                    className="ui-text tnum inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] text-sm font-bold text-[var(--color-on-primary)]"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="title mt-4 text-xl">{feature.title}</h3>
+                  <p className="mt-2 text-[var(--color-muted-foreground)]">{feature.body}</p>
+                </Reveal>
+              ))}
+            </ul>
+          </div>
         </section>
 
-        {/* ---------- 03 Tiers ---------- */}
-        <section className="pb-24">
-          <SectionMark n="03" title="Five tiers" />
-          <p className="mt-8 max-w-[52ch] text-[0.9375rem] leading-[1.55] text-[var(--color-gray)]">
-            Describe how you play in a sentence and you get a suggested tier. You can override it.
-            Nothing is saved to your profile without you confirming it.
-          </p>
-          <dl className="neu-e2 mt-8 divide-y divide-transparent rounded-[var(--radius-lg)] px-6 py-2">
-            {TIERS.map((tier) => (
-              <div
-                key={tier}
-                className="flex items-baseline gap-5 py-5 not-first:border-t not-first:border-[var(--neu-dark)]/50 sm:gap-8"
-              >
-                <dt className="display-sm w-10 shrink-0 text-[2rem] text-[var(--color-accent)] sm:w-14 sm:text-[2.75rem]">
-                  {tier}
-                </dt>
-                <dd className="text-base font-medium sm:text-lg">{TIER_LABELS[tier]}</dd>
-              </div>
-            ))}
-          </dl>
+        {/* ---------- Courts ---------- */}
+        <section className="block-section border-t border-[var(--color-border)]">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal>
+              <h2 className="display text-[clamp(2rem,5vw,3rem)]">Where you play</h2>
+              <p className="mt-4 max-w-[56ch] text-[var(--color-muted-foreground)]">
+                Every court below is open rec, first come first served. PE and intramural
+                programming takes priority during term, so a court can be taken without notice.
+                Diagrams are drawn to real court dimensions.
+              </p>
+            </Reveal>
+
+            <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {SPORTS.map((sport, i) => (
+                <SportCard key={sport} sport={sport} index={i} />
+              ))}
+
+              {reservationOnly.length > 0 ? (
+                <Reveal
+                  as="li"
+                  index={SPORTS.length}
+                  className="flex flex-col justify-center rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-border)] p-6"
+                >
+                  <p className="eyebrow text-[var(--color-primary)]">Coming soon</p>
+                  {reservationOnly.map((venue) => (
+                    <p key={venue.name} className="mt-3 text-[var(--color-muted-foreground)]">
+                      <span className="font-semibold text-[var(--color-foreground)]">
+                        {venue.name}
+                      </span>{": "}
+                      {venue.note?.toLowerCase()}
+                    </p>
+                  ))}
+                </Reveal>
+              ) : null}
+            </ul>
+          </div>
+        </section>
+
+        {/* ---------- Tiers ---------- */}
+        <section className="block-section border-t border-[var(--color-border)]">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal>
+              <h2 className="display text-[clamp(2rem,5vw,3rem)]">Five tiers</h2>
+              <p className="mt-4 max-w-[56ch] text-[var(--color-muted-foreground)]">
+                Describe how you play in a sentence and you get a suggested tier. You can override
+                it. Nothing is saved to your profile without you confirming it.
+              </p>
+            </Reveal>
+
+            <dl className="mt-12 grid gap-4 sm:grid-cols-5">
+              {TIERS.map((tier, i) => (
+                <Reveal
+                  key={tier}
+                  index={i}
+                  className="surface flex flex-col gap-1 p-5 shadow-[var(--shadow-1)]"
+                >
+                  <dt className="display tnum text-4xl text-[var(--color-primary)]">{tier}</dt>
+                  <dd className="ui-text text-sm font-medium">{TIER_LABELS[tier]}</dd>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* ---------- 4. CTA ---------- *
+            Deep CTA on the accent block: ink on lime clears 7:1 easily,
+            which is the pattern's contrast requirement for the closing CTA. */}
+        <section className="bg-[var(--color-accent)] text-[var(--color-on-accent)]">
+          <div className="mx-auto max-w-6xl px-5 py-20 text-center">
+            <Reveal>
+              <h2 className="display text-[clamp(2rem,6vw,3.5rem)]">Go find a game.</h2>
+              <p className="mx-auto mt-4 max-w-[46ch] text-lg opacity-80">
+                Open to anyone with a Cornell NetID.
+              </p>
+              <Link href="/sign-up" className="mt-10 inline-block">
+                <Button size="lg">Create an account</Button>
+              </Link>
+            </Reveal>
+          </div>
         </section>
       </main>
 
