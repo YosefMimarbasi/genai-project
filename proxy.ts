@@ -64,5 +64,20 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)"],
+  /*
+   * `api` is excluded deliberately, not as an optimization.
+   *
+   * This proxy decides access from the *cookie* session, which is the
+   * right signal for a page request from a browser and the wrong one for
+   * an API call. Route handlers authenticate themselves from an
+   * `Authorization: Bearer` token (lib/supabase/verify-user.ts), and the
+   * cron route from CRON_SECRET — none of which carry cookies. With /api
+   * inside the matcher, every one of those got a 307 to /sign-in before
+   * its handler ever ran: Vercel Cron could never trigger the expiry
+   * sweep, and any non-browser client was answered with a login page
+   * instead of JSON.
+   */
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)",
+  ],
 };
