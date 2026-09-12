@@ -1,33 +1,54 @@
 # Cornell Racket Queue
 
-A Cornell racket-sports matching app. Next.js App Router (deployed as
-Vercel Functions) + Supabase (Postgres, Auth, Realtime — no Edge
-Functions, one deploy target).
+Say you're free, get matched with another Cornell student at your level
+who's free in the same window, play the same day.
 
-## Branches
+Next.js 16 App Router (deployed as Vercel Functions) + Supabase
+(Postgres, Auth, Realtime — no Edge Functions, one deploy target).
 
-Backend (done, merged to `main`):
+Live: https://cornell-paddle-match.vercel.app
 
+## Status
+
+The app is built and deployed. It is **not yet functional in production**:
+all six environment variables on Vercel are still literal
+`placeholder-*` strings, so every signed-in feature fails on submit. The
+public pages (landing, privacy, terms, accessibility) work.
+
+Check at any time:
+
+```bash
+curl -s https://cornell-paddle-match.vercel.app/api/health
 ```
-main
- ├─ feature/schema-rls         (merged)
- ├─ feature/matching-engine    (merged)
- └─ feature/llm-integrations   (merged)
-```
 
-See [docs/build-prompt.md](docs/build-prompt.md) for how the backend was
-built and [docs/schema-contract.md](docs/schema-contract.md) for the
-schema/RLS contract it implements.
+`{"ok":true}` means configured, reachable, and migrated. Anything else
+says which of the three is missing.
 
-Frontend: see [docs/frontend-build-prompt.md](docs/frontend-build-prompt.md).
+### Going live
 
-```
-main
- ├─ chore/ui-shared-setup      (merged)
- ├─ feature/onboarding-ui      (PR open — awaiting review)
- ├─ feature/queue-ui           (up for grabs)
- └─ feature/chat-ui            (up for grabs — has a small backend gap to close first, see the doc)
-```
+1. Create a Supabase project. From Settings → API take the project URL,
+   the `anon` key and the `service_role` key.
+2. Push the schema (works over the network, no Docker needed):
+   ```bash
+   npx supabase link --project-ref YOUR_PROJECT_REF
+   npx supabase db push
+   ```
+3. Set all six variables on Vercel (`SUPABASE_URL` is the same value as
+   `NEXT_PUBLIC_SUPABASE_URL`; `CRON_SECRET` is any long random string):
+   ```bash
+   npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
+   # ...and the other five
+   ```
+4. **Redeploy.** This is not optional: `NEXT_PUBLIC_*` values are baked
+   into the browser bundle at build time, so changing them without
+   rebuilding leaves the old values shipping to browsers.
+   ```bash
+   npx vercel deploy --prod
+   ```
+
+Supabase turns on email confirmation by default, with a rate-limited
+built-in SMTP (a few messages an hour). For demos, turn off
+Auth → Providers → Email → "Confirm email", or sign-ups will stall.
 
 ## Setup
 
@@ -37,55 +58,86 @@ cp .env.example .env.local   # fill in Supabase + Anthropic credentials
 npm run dev
 ```
 
-- `npm run typecheck` — TypeScript, no emit
-- `npm test` — vitest (unit tests under `tests/`)
-- `npm run build` — Next.js production build
+| Command | What it does |
+|---|---|
+| `npm run typecheck` | TypeScript, no emit |
+| `npm test` | vitest (unit tests under `tests/`) |
+| `npm run build` | Next.js production build |
 
-## Frontend stack
+All three run on every push and pull request — see
+[.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-- **Styling**: Tailwind CSS v4 (tokens declared in `app/globals.css` —
-  Cornell Red accent, Geist type, hairline borders, restrained shadow).
+## Stack notes
+
+- **Styling**: Tailwind CSS v4, all tokens in `app/globals.css`.
+  Neumorphic surfaces on a warm ground; Cornell Big Red and a court-lime
+  accent; Palatino display with EB Garamond / Crimson Text standing in
+  for Cornell's commercial Freight faces. Shadow carries affordance,
+  colour and borders carry state, so nothing depends on an effect that
+  vanishes under forced-colours.
 - **Auth/session**: `@supabase/ssr` — `lib/supabase/browser-client.ts`
   (Client Components), `lib/supabase/server-client.ts` (Server
-  Components), `proxy.ts` (session refresh + redirect, Next.js 16's
-  renamed `middleware.ts`).
-- **UI primitives**: `components/ui/*` (Button via `cva`, Card,
-  TextInput and Select via `@base-ui/react`, Spinner). Toasts via
-  `sonner` (`<Toaster />` in `app/layout.tsx`, call `toast()` from
-  anywhere).
+  Components), `proxy.ts` (session refresh + guarding the signed-in
+  area; Next 16's renamed `middleware.ts`).
+
+  `browser-client.ts` reads its two `NEXT_PUBLIC_*` values as literal
+  static expressions on purpose. Next can only inline them into the
+  browser bundle where the name appears literally, so routing them
+  through a `requireEnv(name)` helper makes every client-side Supabase
+  call throw. Don't refactor those two lines.
+- **UI primitives**: `components/ui/*` (Button via `cva`, Card, TextInput
+  and Select via `@base-ui/react`, Spinner, Skeleton). Toasts via
+  `sonner`.
 - **Data**: `lib/api-client.ts`'s `apiFetchJson` for this repo's own API
-  routes (attaches the session's bearer token, throws a typed `ApiError`
-  on failure); read RLS-scoped tables directly via the Supabase browser
+  routes (attaches the session's bearer token, throws a typed
+  `ApiError`); read RLS-scoped tables directly via the Supabase browser
   client. `hooks/use-realtime-channel.ts` for live Postgres-change
   subscriptions.
-- **Design/animation guidance**: `.claude/skills/web-design-engineer`,
-  `emil-design-eng`, `apple-design`, `animate`, `pick-ui-library` — read
-  before adding UI or motion to any page.
-- Route layout: `app/(auth)/sign-in`, `app/(auth)/sign-up` (no nav
-  chrome); `app/(app)/*` (wrapped in `components/nav.tsx` via
-  `app/(app)/layout.tsx`) for everything behind sign-in.
+- **Routes**: `app/(auth)/sign-in`, `app/(auth)/sign-up` (no nav chrome);
+  `app/(app)/*` behind sign-in, wrapped in `components/nav.tsx`; legal
+  pages under `app/(legal)/*`.
 
 ## API routes
 
 All routes expect `Authorization: Bearer <supabase access token>` unless
-noted otherwise; see `lib/supabase/verify-user.ts`.
+noted; see `lib/supabase/verify-user.ts`. `/api/*` is excluded from the
+proxy matcher — these authenticate from the token, not a cookie.
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/queue/ready` | POST | Join the queue and atomically match against a compatible waiting entry if one exists. |
-| `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. |
-| `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`) — reverts expired proposed matches back to `waiting`. Configured in `vercel.json`, every 5 minutes; tune against the ~90s expiry window and your Vercel plan's cron-frequency limits. |
-| `/api/onboarding/skill-normalize` | POST | Forced-tool-use call to classify a free-text experience description into a 1-5 skill tier. Below confidence 0.6, nothing is saved — the client should show a manual tier picker instead. |
-| `/api/matches/[matchId]/messages` | POST | Sends a chat message in a confirmed match, then (if the message passes a cheap keyword pre-filter) runs forced-tool-use scheduling extraction and returns a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself. There's currently no route for a human tap on the resulting chip to call — see the "backend gap" note in [docs/frontend-build-prompt.md](docs/frontend-build-prompt.md) under `feature/chat-ui`. |
+| `/api/health` | GET | Deployment readiness. Distinguishes an unset variable from a placeholder, and a reachable database from a migrated one. Booleans and names only, never a value. No auth. |
+| `/api/queue/ready` | POST | Join the queue and atomically match against a compatible waiting entry. Sweeps expired proposals first, so the pool heals itself without a scheduler. |
+| `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. Expiry is handled inline, so a stale proposal cannot be accepted. |
+| `/api/matches/[matchId]/messages` | POST | Send a chat message, then (if it passes a cheap keyword pre-filter) run forced-tool-use scheduling extraction and return a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself. |
+| `/api/matches/[matchId]/schedule` | PATCH | Confirm a time and court into the match. The court is re-validated against `lib/courts.ts` here, because the extractor's schema constraint says nothing about what a browser chose to send. |
+| `/api/onboarding/skill-normalize` | POST | Forced-tool-use call classifying a free-text experience description into a 1–5 tier. Below confidence 0.6 nothing is saved and the client shows a manual picker. |
+| `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`). Runs daily as a janitor. Correctness does not depend on it — `ready_up()` sweeps opportunistically — which is what makes this work on a Hobby plan that cannot run sub-daily crons. |
 
-**`lib/courts.ts` is a placeholder list of Cornell facility names, not
-verified against the current real ones — confirm before shipping.**
+## Data
 
-## Subagents
+`lib/courts.ts` holds the real venue list: which courts host which sport,
+which are open-rec, which are residents-only, and which need a
+reservation. It was researched against Cornell recreation pages and
+corrected against on-the-ground knowledge. Sources are cited in the file
+header. Treat it as verified, and re-check hours each semester.
 
-Defined under `.claude/agents/`:
+## Schema
 
-- Backend: `schema-migrator`, `matching-engine-builder`,
-  `llm-integration-builder`
-- Frontend: `onboarding-ui-builder`, `queue-ui-builder`, `chat-ui-builder`
-- Cross-cutting: `security-reviewer` (read-only), `test-writer`
+Five tables, RLS on all of them, plus `SECURITY DEFINER` functions for
+the operations that legitimately cross users (`ready_up`,
+`respond_to_match`, `update_match_schedule`, `sweep_expired_matches`),
+each revoked from `anon`/`authenticated` and callable only by the service
+role. See [supabase/README.md](supabase/README.md) and
+[docs/schema-contract.md](docs/schema-contract.md).
+
+## Known gaps
+
+- No CSP. The App Router emits inline hydration scripts, so a CSP worth
+  having needs per-request nonce plumbing, and a wrong `connect-src`
+  silently stops Supabase realtime from reconnecting. Left out rather
+  than shipped as something that only looks like protection. Other
+  security headers are set in `next.config.ts`.
+- Auto-deploy is off — the Vercel GitHub App is not authorised for this
+  repo, so deploys are manual (`npx vercel deploy --prod`).
+- The legal pages describe the app's real data flows accurately, but
+  have had no legal review.

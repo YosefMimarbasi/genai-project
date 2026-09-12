@@ -8,13 +8,30 @@ const AUTH_PATHS = ["/sign-in", "/sign-up"];
 const LANDING_PATH = "/";
 
 /**
- * Readable without an account. The privacy policy in particular has to be
- * reachable *before* someone hands over an email address.
+ * The signed-in area. This is an allowlist of what to GUARD, which is the
+ * inverse of the denylist of public paths it replaced.
+ *
+ * The denylist redirected anything it did not recognise, and middleware
+ * runs before routing, so it cannot tell a protected page from a URL that
+ * does not exist. Every typo'd address answered with a 307 to /sign-in,
+ * and app/not-found.tsx was unreachable for a signed-out visitor.
+ *
+ * Listing what to guard is safe here because it is not the only guard:
+ * all four pages under app/(app)/ call redirect("/sign-in") themselves
+ * when there is no user, and every table is behind RLS. This layer exists
+ * to avoid a pointless render, not to be the last line of defence — so a
+ * new route added without a line here degrades to a slower redirect, not
+ * to exposed data.
  */
-const PUBLIC_PATHS = ["/privacy", "/terms", "/accessibility"];
+const PROTECTED_PREFIXES = ["/play", "/profile", "/matches"];
 
 /** Where a signed-in user lands. */
 const APP_HOME = "/play";
+
+/** Exact match, or a real path segment — "/play" must not match "/playground". */
+function isUnder(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -45,12 +62,14 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
-
+  const isAuthPath = AUTH_PATHS.some((path) => isUnder(pathname, path));
   const isLanding = pathname === LANDING_PATH;
-  const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const isProtected = PROTECTED_PREFIXES.some((prefix) => isUnder(pathname, prefix));
 
-  if (!user && !isAuthPath && !isLanding && !isPublic) {
+  // Only the signed-in area redirects. Anything else unrecognised falls
+  // through to Next's router, which answers a genuine 404 with
+  // app/not-found.tsx instead of a login page.
+  if (!user && isProtected) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
