@@ -9,7 +9,9 @@ const LEGAL_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-[var(--color-border)] bg-[var(--color-muted)]">
+    // Recessed rather than bordered: the page dips into the footer, which
+    // is the neumorphic way to close a document without drawing a rule.
+    <footer className="bg-[var(--color-background)] shadow-[inset_0_6px_14px_-8px_var(--neu-dark)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-12">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <span className="title text-lg">Cornell Racket Queue</span>

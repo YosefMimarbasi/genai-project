@@ -45,12 +45,12 @@ export function ProfileEditor({ userId, initialSkillTier }: ProfileEditorProps) 
                 className={cn(
                   "ui-text flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--radius-md)]",
                   "border-2 px-4 text-sm font-semibold",
-                  "transition-[transform,background-color,border-color,color] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+                  "transition-[transform,background-color,border-color,color,box-shadow] duration-[var(--dur-base)] ease-[var(--ease-out)]",
                   "active:scale-[0.97]",
-                  "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
+                  "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-ring)]",
                   activeSport === sport
-                    ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                    : "border-[var(--color-border-strong)] bg-[var(--color-card)] hover:border-[var(--color-foreground)]"
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]"
+                    : "border-[var(--color-border-strong)] bg-[var(--color-card)] shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)] hover:border-[var(--color-foreground)]"
                 )}
               >
                 {sport}

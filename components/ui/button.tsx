@@ -3,44 +3,87 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 /*
- * §2 touch-target-size — every size meets the 44px minimum, including sm.
+ * Neumorphic buttons.
+ *
+ * The press is the whole point of the style: raised at rest, pushed into
+ * the ground on :active, which is the inset shadow pair. Combined with the
+ * 0.97 scale it reads as a physical key rather than a rectangle that
+ * changes colour.
+ *
+ * WCAG 1.4.11 wants 3:1 for the visual boundary of a control, and a
+ * shadow has no contrast ratio. Filled variants satisfy it through the
+ * fill itself (primary 5.37:1, destructive 6.56:1 against the ground).
+ * Ground-coloured variants have no fill to rely on, so secondary keeps a
+ * literal border. Ghost is deliberately exempt: it is only ever used
+ * beside a stronger control, never as the sole action.
+ *
+ * §2 touch-target-size — every size meets 44px, including sm.
  * §2 loading-buttons  — disabled + spinner while async work is in flight.
- * §4 primary-action   — one primary per screen; secondary is subordinate.
  * §7 duration-timing  — 220ms, inside the 150-300ms micro band.
- * §7 scale-feedback   — 0.97 press, restored on release.
  */
+const RAISED = "shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)]";
+const RAISED_HOVER =
+  "hover:shadow-[9px_9px_22px_var(--neu-dark),-9px_-9px_22px_var(--neu-light)]";
+const PRESSED =
+  "active:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]";
+
 const buttonVariants = cva(
   [
- "ui-text inline-flex items-center justify-center gap-2",
- "font-semibold whitespace-nowrap cursor-pointer select-none",
- "rounded-[var(--radius-md)]",
- "transition-[transform,background-color,color,border-color,box-shadow]",
- "duration-[var(--dur-base)] ease-[var(--ease-out)]",
- "active:scale-[0.97]",
-    // §8 disabled-states — reduced opacity + not-allowed + no pointer events.
- "disabled:pointer-events-none disabled:opacity-45",
- "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
+    "ui-text inline-flex items-center justify-center gap-2",
+    "font-semibold whitespace-nowrap cursor-pointer select-none",
+    "rounded-[var(--radius-md)]",
+    "transition-[transform,background-color,color,border-color,box-shadow]",
+    "duration-[var(--dur-base)] ease-[var(--ease-out)]",
+    "active:scale-[0.97]",
+    // §8 disabled-states — reduced opacity, no pointer events, and the
+    // extrusion flattened, so a dead control does not still look pressable.
+    "disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none",
+    "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-ring)]",
   ],
   {
     variants: {
       variant: {
-        primary:
- "bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[var(--shadow-1)] hover:bg-[var(--color-primary-hover)] hover:shadow-[var(--shadow-2)]",
-        // The energetic accent. Ink on lime is 13:1, so it stays legible.
-        accent:
- "bg-[var(--color-primary)] text-[var(--color-on-accent)] shadow-[var(--shadow-1)] hover:bg-[var(--color-primary-hover)] hover:shadow-[var(--shadow-2)]",
-        secondary:
- "border-2 border-[var(--color-foreground)] bg-transparent text-[var(--color-foreground)] hover:bg-[var(--color-foreground)] hover:text-[var(--color-background)]",
+        primary: [
+          "bg-[var(--color-primary)] text-[var(--color-on-primary)]",
+          RAISED,
+          RAISED_HOVER,
+          "hover:bg-[var(--color-primary-hover)]",
+          PRESSED,
+        ],
+        // Ink on lime is 12.74:1. This previously read
+        // bg-[var(--color-primary)] — an artifact of an earlier
+        // find-and-replace that silently turned every accent button red.
+        accent: [
+          "bg-[var(--color-accent)] text-[var(--color-on-accent)]",
+          RAISED,
+          RAISED_HOVER,
+          "hover:bg-[var(--color-accent-hover)]",
+          PRESSED,
+        ],
+        // The classic neumorphic control: the ground itself, extruded.
+        secondary: [
+          "bg-[var(--color-card)] text-[var(--color-foreground)]",
+          "border-2 border-[var(--color-border-strong)]",
+          RAISED,
+          RAISED_HOVER,
+          "hover:border-[var(--color-foreground)]",
+          PRESSED,
+        ],
         ghost:
- "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
-        destructive:
- "bg-[var(--color-destructive)] text-[var(--color-on-destructive)] hover:brightness-110",
+          "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] active:scale-[0.97]",
+        destructive: [
+          "bg-[var(--color-destructive)] text-[var(--color-on-destructive)]",
+          RAISED,
+          RAISED_HOVER,
+          "hover:brightness-110",
+          PRESSED,
+        ],
       },
       size: {
         // min-h-11 = 44px, the floor for every size.
-        sm: "min-h-11 px-4 text-sm",
-        md: "min-h-12 px-5 text-[0.9375rem]",
-        lg: "min-h-14 px-8 text-base",
+        sm: "min-h-11 px-5 text-sm",
+        md: "min-h-12 px-6 text-[0.9375rem]",
+        lg: "min-h-14 px-9 text-base",
       },
       full: { true: "w-full", false: "" },
     },

@@ -41,7 +41,7 @@ export default async function MatchesPage() {
             <li key={match.id}>
               <Link
                 href={`/matches/${match.id}`}
-                className="surface group flex min-h-16 flex-wrap items-center justify-between gap-3 p-5 shadow-[var(--shadow-1)] transition-[box-shadow,border-color] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-2)]"
+                className="surface neu-lift group flex min-h-16 flex-wrap items-center justify-between gap-3 p-5"
               >
                 <span className="title text-lg group-hover:text-[var(--color-primary)]">
                   {match.agreed_location}

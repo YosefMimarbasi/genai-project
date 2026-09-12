@@ -27,11 +27,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={inputId}
           aria-describedby={hintId}
           className={cn(
- "ui-text min-h-28 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-border-strong)]",
- "bg-[var(--color-card)] px-4 py-3 text-base text-[var(--color-foreground)]",
- "transition-[border-color] duration-[var(--dur-fast)] ease-[var(--ease-out)]",
- "placeholder:text-[var(--color-muted-foreground)]",
- "focus:border-[var(--color-primary)] focus:outline-none",
+          "ui-text min-h-28 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-border-strong)]",
+          "bg-[var(--color-card)] px-4 py-3 text-base text-[var(--color-foreground)]",
+          // Same well as the single-line field, so the two read as one family.
+          "shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
+          "transition-[border-color] duration-[var(--dur-fast)] ease-[var(--ease-out)]",
+          "placeholder:text-[var(--color-muted-foreground)]",
+          // focus:outline-none removed — it suppressed the global
+          // :focus-visible ring along with the browser default.
+          "focus:border-[var(--color-primary)]",
             className
           )}
           {...props}

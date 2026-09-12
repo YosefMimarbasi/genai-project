@@ -45,13 +45,18 @@ export function Select({
       >
         <BaseSelect.Trigger
           className={cn(
- "ui-text flex h-12 cursor-pointer items-center justify-between gap-2",
- "rounded-[var(--radius-md)] border-2 border-[var(--color-border-strong)]",
- "bg-[var(--color-card)] px-4 text-base text-[var(--color-foreground)]",
- "transition-[border-color,transform] duration-[var(--dur-base)] ease-[var(--ease-out)]",
- "hover:border-[var(--color-foreground)] active:scale-[0.99]",
- "data-[popup-open]:border-[var(--color-primary)]",
- "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]"
+          "ui-text flex h-12 cursor-pointer items-center justify-between gap-2",
+          "rounded-[var(--radius-md)] border-2 border-[var(--color-border-strong)]",
+          "bg-[var(--color-card)] px-4 text-base text-[var(--color-foreground)]",
+          // Raised at rest like a button, because it opens something;
+          // pressed while the popup is open, so the trigger visibly stays
+          // held down for as long as the menu is up.
+          "shadow-[5px_5px_12px_var(--neu-dark),-5px_-5px_12px_var(--neu-light)]",
+          "data-[popup-open]:shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
+          "transition-[border-color,transform,box-shadow] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+          "hover:border-[var(--color-foreground)] active:scale-[0.99]",
+          "data-[popup-open]:border-[var(--color-primary)]",
+          "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-ring)]"
           )}
         >
           <BaseSelect.Value placeholder={placeholder} />
@@ -66,7 +71,10 @@ export function Select({
           <BaseSelect.Positioner sideOffset={8} className="z-[var(--z-popover)]">
             <BaseSelect.Popup
               className={cn(
- "surface min-w-[var(--anchor-width)] overflow-hidden p-1.5 shadow-[var(--shadow-3)]",
+          // e3 stated directly rather than .surface plus an overriding
+          // shadow utility: a popup is the highest thing on the page and
+          // should say so, not arrive there by cascade accident.
+          "neu-e3 rounded-[var(--radius-lg)] min-w-[var(--anchor-width)] overflow-hidden p-1.5",
  "origin-[var(--transform-origin)]",
  "transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)]",
                 // Never from scale(0) — nothing appears out of nothing.

@@ -10,7 +10,12 @@ import { Button } from "@/components/ui/button";
  */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-[var(--z-nav)] border-b border-[var(--color-border)] bg-[var(--color-background)]/90 backdrop-blur-md">
+    // No bottom border: a hard 1px rule is the one thing this style does
+    // not have. The header separates from the page by casting a soft
+    // shadow onto it instead — a single downward offset rather than the
+    // symmetric pair, because a bar fixed to the top edge has no room
+    // above it for a highlight.
+    <header className="sticky top-0 z-[var(--z-nav)] bg-[var(--color-background)]/90 shadow-[0_5px_12px_var(--neu-dark)] backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
         <Link
           href="/"

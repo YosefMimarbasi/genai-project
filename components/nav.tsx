@@ -43,7 +43,7 @@ export function Nav() {
   }
 
   return (
-    <header className="sticky top-0 z-[var(--z-nav)] border-b border-[var(--color-border)] bg-[var(--color-background)]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-[var(--z-nav)] bg-[var(--color-background)]/90 shadow-[0_5px_12px_var(--neu-dark)] backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
         <Link href="/play" className="title flex min-h-11 shrink-0 items-center text-lg">
           <span className="hidden sm:inline">Cornell Racket Queue</span>

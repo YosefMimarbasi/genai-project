@@ -30,18 +30,22 @@ export function TierSelector({ value, onChange, confirmed }: TierSelectorProps) 
               className={cn(
                 "ui-text flex h-12 w-12 cursor-pointer items-center justify-center",
                 "rounded-[var(--radius-md)] border-2 text-base font-bold",
-                "transition-[transform,background-color,border-color,color] duration-[var(--dur-base)] ease-[var(--ease-out)]",
+                "transition-[transform,background-color,border-color,color,box-shadow] duration-[var(--dur-base)] ease-[var(--ease-out)]",
                 "active:scale-[0.95]",
-                "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
+                "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-ring)]",
+                // Saved: filled and pushed in — the tier is settled.
                 selected && confirmed &&
-                  "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]",
+                  "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
                 // Picked but unsaved: outlined, not filled. §1 color-not-only
                 // is satisfied by the fill/outline shape difference plus the
                 // "not saved yet" text below.
+                // Picked but unsaved: still raised, because nothing has
+                // been committed yet. The outline-not-fill difference plus
+                // the "not saved yet" text below carry the distinction.
                 selected && !confirmed &&
-                  "border-[var(--color-primary)] bg-[var(--color-card)] text-[var(--color-primary)]",
+                  "border-[var(--color-primary)] bg-[var(--color-card)] text-[var(--color-primary)] shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)]",
                 !selected &&
-                  "border-[var(--color-border-strong)] bg-[var(--color-card)] text-[var(--color-foreground)] hover:border-[var(--color-foreground)]"
+                  "border-[var(--color-border-strong)] bg-[var(--color-card)] text-[var(--color-foreground)] shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)] hover:border-[var(--color-foreground)]"
               )}
             >
               {tier}

@@ -193,9 +193,12 @@ export function Chat({
                   <p
                     className={cn(
                       "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
+                      // e1, the dense-control tier: bubbles sit just proud
+                      // of the ground so a long thread does not turn into
+                      // a stack of heavy floating cards.
                       mine
-                        ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                        : "surface"
+                        ? "bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[3px_3px_7px_var(--neu-dark),-3px_-3px_7px_var(--neu-light)]"
+                        : "neu-e1"
                     )}
                   >
                     {message.content}
@@ -256,11 +259,14 @@ export function Chat({
             "h-12 flex-1 rounded-[var(--radius-md)] px-4 text-base",
             "bg-[var(--color-card)] text-[var(--color-foreground)]",
             // The border *is* the affordance here, so it uses the
-            // 3:1 token (WCAG 1.4.11), not the decorative one.
+            // 3:1 token (WCAG 1.4.11), not the decorative one. The
+            // shadow makes it a well; the border is what actually
+            // satisfies the boundary requirement.
             "border-2 border-[var(--color-border-strong)]",
+            "shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
             "transition-colors duration-[var(--dur-base)] ease-[var(--ease-out)]",
             "hover:border-[var(--color-foreground)]",
-            "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
+            "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-ring)]",
             "placeholder:text-[var(--color-muted-foreground)]"
           )}
         />

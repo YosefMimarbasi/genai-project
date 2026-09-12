@@ -50,11 +50,18 @@ export function TextInput({
         required={required}
         aria-invalid={error ? true : undefined}
         className={cn(
- "ui-text h-12 w-full rounded-[var(--radius-md)] border-2 bg-[var(--color-card)] px-4",
- "text-base text-[var(--color-foreground)]",
- "transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-[var(--ease-out)]",
- "placeholder:text-[var(--color-muted-foreground)]",
- "focus:outline-none focus:border-[var(--color-primary)]",
+          "ui-text h-12 w-full rounded-[var(--radius-md)] border-2 bg-[var(--color-card)] px-4",
+          "text-base text-[var(--color-foreground)]",
+          // Carved into the ground: in neumorphism a field reads as a
+          // well, which is the inverse of the raised button beside it.
+          "shadow-[inset_3px_3px_7px_var(--neu-dark),inset_-3px_-3px_7px_var(--neu-light)]",
+          "transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-[var(--ease-out)]",
+          "placeholder:text-[var(--color-muted-foreground)]",
+          // No focus:outline-none here. It used to sit on this line, and
+          // because it matches :focus it also suppressed the global
+          // :focus-visible ring, leaving a colour-only focus cue on a
+          // control whose boundary is otherwise just a shadow.
+          "focus:border-[var(--color-primary)]",
           error ? "border-[var(--color-destructive)]" : "border-[var(--color-border-strong)]",
           inputClassName
         )}

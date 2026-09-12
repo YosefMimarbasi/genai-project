@@ -2,101 +2,137 @@
 
 /*
  * Design system — Cornell Racket Queue
- * Generated from the ui-ux-pro-max skill database.
  *
- *   products.csv  → "Sports Team/Club"
- *                     style   : Vibrant & Block-based + Motion-Driven
- *                     landing : Hero-Centric + Feature-Rich
- *                     colour  : "Team colors + Energetic accents"
- *   styles.csv    → block gap 48px+, display type 32px+, 4-6 colours max,
- *                   scroll-snap, bold hover colour-shift, 200-300ms,
- *                   contrast verified 7:1+
- *   typography    → EB Garamond / Crimson Text (academic, university)
+ * Visual language: neumorphism. Soft extruded surfaces built from paired
+ * light/dark shadows on a single monochromatic ground.
  *
- * "Team colors" is why Cornell Big Red stays primary rather than the
- * generator's rose #E11D48 — the palette row is subordinate to the
- * product row here.
+ * Structure, information architecture and UX rules come from the
+ * ui-ux-pro-max pass and are unchanged — this is a re-skin of the surface
+ * treatment, not a rebuild:
+ *   products.csv -> "Sports Team/Club" -> Hero-Centric + Feature-Rich,
+ *                   "Team colors + Energetic accents"
+ *   styles.csv   -> 48px block gap, 32px+ display, 4-6 colours, 200-300ms
  *
- * Colour count is deliberately at the low end of the 4-6 budget: red,
- * court lime, ink, ground. Everything else is a tint of those.
+ * NEUMORPHISM'S FAILURE MODE, AND THE RULE THAT CONTAINS IT
+ * --------------------------------------------------------
+ * This style encodes everything in shadow. Shadow is invisible to many
+ * people with low vision, vanishes in forced-colours mode, and carries no
+ * contrast ratio at all. Left unchecked it produces buttons nobody can
+ * find and inputs that read as plain text.
+ *
+ * So, throughout: shadow carries AFFORDANCE (this is raised, this is a
+ * well), while colour, text and a real border carry STATE (this is
+ * selected, this is invalid, this is focused). Shadow is never the only
+ * signal for anything. Interactive boundaries keep a literal border that
+ * meets the 3:1 of WCAG 1.4.11, because an extrusion is not a boundary.
+ *
+ * Every ratio below is computed against the ground, not inherited from
+ * the previous palette — the ground moved from near-white to a mid warm
+ * tone (neumorphism needs headroom on both sides to cast a light shadow
+ * AND a dark one), so every pairing had to be re-derived.
  */
 @theme {
-  /* --- Type -------------------------------------------------------- */
-  --font-display: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
-  --font-body: var(--font-crimson), "Crimson Text", Georgia, serif;
-  --font-ui: ui-sans-serif, system-ui, sans-serif;
-
-  /* --- Semantic colour tokens -------------------------------------- *
-   * Named by role, never by hue, so components never hardcode a hex.
-   *
-   * Measured in-browser, not estimated:
-   *   foreground / background   17.52:1
-   *   muted-foreground / bg      7.56:1
-   *   on-accent / accent        12.74:1
-   *   destructive / background   7.96:1
-   *   on-primary / primary       6.80:1  ← see note
-   *
-   * White on Cornell Big Red lands at 6.80:1, short of the style's 7:1
-   * ambition. It clears WCAG AA (4.5:1) with room to spare but not AAA.
-   * Fixing it would mean darkening Big Red, i.e. no longer being the team
-   * colour, which the product row explicitly calls for. The brand wins and
-   * the real number is recorded here rather than rounded up.
+  /* --- Type --------------------------------------------------------- *
+   * Cornell's own faces, in the roles Cornell uses them. Palatino is the
+   * logo face and ships with Windows (Palatino Linotype) and macOS, so it
+   * needs no hosting. Freight Sans and Freight Text are commercial and
+   * cannot be served from a free CDN; they are named first so that
+   * self-hosting a licensed copy under these family names makes the whole
+   * site pick them up with no other change. Until then EB Garamond and
+   * Crimson Text (already loaded via next/font) stand in, chosen because
+   * they fill the same academic-serif role.
    */
-  --color-primary: #b31b1b; /* Cornell Big Red — the team colour */
+  --font-display: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L",
+    var(--font-eb-garamond), Georgia, serif;
+  --font-body: "Freight Text Pro", var(--font-crimson), "Crimson Text", Georgia, serif;
+  --font-ui: "Freight Sans Pro", "FreightSans Pro", ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Colour ------------------------------------------------------- *
+   * Measured against the ground #eae4d8:
+   *   foreground        14.45:1   AAA
+   *   muted-foreground   7.77:1   AAA
+   *   primary            5.37:1   AA
+   *   destructive        6.56:1   AA
+   *   border-strong      3.55:1   clears the 3:1 of 1.4.11 for controls
+   *   on-primary/primary 6.80:1   AA (see note)
+   *
+   * White on Cornell Big Red is 6.80:1 — AA with room, short of AAA.
+   * Fixing it means darkening Big Red, i.e. no longer being the team
+   * colour, which the product row explicitly calls for. The brand wins
+   * and the true number is recorded rather than rounded up.
+   */
+  --color-primary: #b31b1b; /* Cornell Big Red */
   --color-primary-hover: #8f1616;
   --color-on-primary: #ffffff;
 
-  /* Court lime: the energetic accent. Racket sports are the one context
-     where this reads as specific rather than arbitrary. Block fills and
-     highlights only, always carrying ink-coloured text. */
+  /* Court lime: the energetic accent. Block fills and highlights only,
+     always carrying ink-coloured text — it is 1.08:1 against the ground
+     and must never be used as a text colour. */
   --color-accent: #d8e64a;
   --color-accent-hover: #c8d63a;
   --color-on-accent: #1a1a17;
 
-  --color-background: #fbfaf7;
-  --color-card: #ffffff;
-  --color-foreground: #16150f;
-  --color-muted: #f1eee7;
-  --color-muted-foreground: #565146; /* darkened from #5c574e: 6.87 → 7.56 */
-  --color-border: #e2ded4; /* decorative outlines: cards, sections */
-  /* Interactive boundaries (inputs, selects, chips). The border IS the
-     affordance there, so WCAG 1.4.11 wants 3:1 against BOTH the page and
-     the card it may sit on. Measured: 3.56 vs bg, 3.72 vs card. */
-  --color-border-strong: #8a8477;
+  /*
+   * The ground. In neumorphism a "card" is not a lighter rectangle laid
+   * on the page — it is the page itself, pushed out. So card and
+   * background are deliberately the same value; depth comes only from the
+   * shadow pair below. Setting them apart is the single fastest way to
+   * break the illusion.
+   */
+  --color-background: #eae4d8;
+  --color-card: #eae4d8;
+  --color-muted: #e2dbcc;
 
-  --color-destructive: #991b1b; /* darker than primary so the two differ */
+  --color-foreground: #16150f;
+  --color-muted-foreground: #484338;
+  --color-border: #d4cdbd; /* decorative seams only */
+  --color-border-strong: #7d7669; /* interactive boundaries — 3.55:1 */
+
+  --color-destructive: #991b1b;
   --color-on-destructive: #ffffff;
   --color-success: #15803d;
   --color-ring: #b31b1b;
 
-  /* --- Spacing: 4/8 rhythm, 48px block gap ------------------------- */
+  /*
+   * The two shadow colours are the entire technique: one lighter than the
+   * ground, one darker, offset in opposite directions from a single
+   * top-left light source. They are not translucent black and white —
+   * tinting them to the ground is what keeps the surface looking like one
+   * material rather than a grey card behind a white glow.
+   */
+  --neu-light: #fbf7ee;
+  --neu-dark: #c3bcab;
+
+  /* --- Spacing ------------------------------------------------------ */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
-  --block-gap: 3rem; /* 48px — the style's minimum section gap */
+  --block-gap: 3rem;
   --block-gap-lg: 6rem;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 1rem;
+  /* Neumorphism needs generous radii — a sharp corner cannot hold a
+     believable extrusion, the shadow pair reads as a printing error. */
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
   --radius-pill: 999px;
 
-  /* --- Motion: 200-300ms micro, ease-out in / ease-in out ---------- */
+  /* --- Motion ------------------------------------------------------- */
   --dur-fast: 150ms;
   --dur-base: 220ms;
   --dur-slow: 320ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* --- Elevation: one consistent scale, no ad-hoc shadows ---------- */
-  --shadow-1: 0 1px 2px rgb(22 21 15 / 0.06), 0 1px 1px rgb(22 21 15 / 0.04);
-  --shadow-2: 0 4px 12px rgb(22 21 15 / 0.08), 0 1px 3px rgb(22 21 15 / 0.06);
-  --shadow-3: 0 12px 32px rgb(22 21 15 / 0.12), 0 2px 8px rgb(22 21 15 / 0.06);
+  /* Kept so any remaining shadow-N call site still resolves; the
+     neumorphic scale below is what this system actually uses. */
+  --shadow-1: 3px 3px 7px var(--neu-dark), -3px -3px 7px var(--neu-light);
+  --shadow-2: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light);
+  --shadow-3: 9px 9px 22px var(--neu-dark), -9px -9px 22px var(--neu-light);
 
-  /* --- z-index scale ----------------------------------------------- */
   --z-nav: 40;
   --z-popover: 100;
   --z-modal: 1000;
@@ -104,21 +140,19 @@
 
 html {
   color-scheme: light;
-  /* Never disable zoom; never suppress smooth scroll for those who want it. */
   scroll-behavior: smooth;
 }
 
 /*
- * Dark mode is designed as its own pairing, not an inversion. The style
- * supports it "✓ Full". Big Red is lightened because #b31b1b on a dark
- * ground fails 4.5:1; the lime already passes and is left alone.
+ * Dark mode is measured as its own pairing, never an inversion — an
+ * inverted neumorphic ground loses the lighter of its two shadows and the
+ * extrusion collapses into a flat smudge.
  *
- * Measured in-browser, not carried over from the light values:
- *   foreground / background   16.49:1
- *   muted-foreground / bg      7.27:1
- *   muted-foreground / card    6.59:1
- *   primary / background       5.44:1
- *   accent / background       13.49:1
+ * Measured against #22201c:
+ *   foreground        13.78:1   AAA
+ *   muted-foreground   7.53:1   AAA
+ *   primary            4.79:1   AA
+ *   border-strong      3.97:1   clears 1.4.11
  */
 html.dark {
   color-scheme: dark;
@@ -131,22 +165,22 @@ html.dark {
   --color-accent-hover: #e4f065;
   --color-on-accent: #14140f;
 
-  --color-background: #14140f;
-  --color-card: #1e1e17;
-  --color-foreground: #f5f2e8;
-  --color-muted: #24241c;
-  --color-muted-foreground: #a8a294;
-  --color-border: #33322a;
-  --color-border-strong: #767165; /* 3.80 vs bg, 3.45 vs card */
+  --color-background: #22201c;
+  --color-card: #22201c;
+  --color-muted: #2b2925;
+
+  --color-foreground: #f0ece2;
+  --color-muted-foreground: #b6b0a2;
+  --color-border: #35322c;
+  --color-border-strong: #837d70;
 
   --color-destructive: #f0574f;
   --color-on-destructive: #14140f;
   --color-success: #4ade80;
   --color-ring: #f0574f;
 
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-2: 0 4px 12px rgb(0 0 0 / 0.45);
-  --shadow-3: 0 12px 32px rgb(0 0 0 / 0.55);
+  --neu-light: #2e2b25;
+  --neu-dark: #141311;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +192,6 @@ html.dark {
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  /* Body is the reading serif; UI chrome opts into --font-ui. */
   font-family: var(--font-body);
   font-size: 1rem; /* 16px — below this iOS auto-zooms on focus */
   line-height: 1.6;
@@ -169,13 +202,117 @@ body {
     color var(--dur-base) var(--ease-out);
 }
 
+/* ------------------------------------------------------------------ *
+ * Neumorphic surfaces
+ *
+ * Semantic classes rather than raw box-shadow strings at call sites, so
+ * the light source stays consistent everywhere and the whole system
+ * retunes from one place.
+ * ------------------------------------------------------------------ */
+
+/*
+ * An elevation scale, not one shadow reused everywhere. Height is the
+ * only hierarchy this style has: if every surface sits at the same
+ * altitude, nothing reads as primary and the page flattens out.
+ *
+ *   e1  dense controls — chips, tier squares, message bubbles
+ *   e2  content surfaces — cards, nav, footer
+ *   e3  the thing you are meant to act on — primary CTA, popovers
+ */
+.neu-e1 {
+  background: var(--color-card);
+  box-shadow:
+    3px 3px 7px var(--neu-dark),
+    -3px -3px 7px var(--neu-light);
+}
+
+.neu-e2 {
+  background: var(--color-card);
+  box-shadow:
+    5px 5px 12px var(--neu-dark),
+    -5px -5px 12px var(--neu-light);
+}
+
+.neu-e3 {
+  background: var(--color-card);
+  box-shadow:
+    9px 9px 22px var(--neu-dark),
+    -9px -9px 22px var(--neu-light);
+}
+
+/** Pressed — carved into the ground. Inputs, wells, active toggles. */
+.neu-pressed {
+  background: var(--color-card);
+  box-shadow:
+    inset 3px 3px 7px var(--neu-dark),
+    inset -3px -3px 7px var(--neu-light);
+}
+
+/*
+ * A raised surface that never reacts feels like a photograph of a button.
+ * Lift on hover, and only on real pointers — touch fires hover on tap and
+ * would leave the control stuck in its lifted state.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .neu-lift {
+    transition:
+      box-shadow var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+  }
+
+  .neu-lift:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      9px 9px 22px var(--neu-dark),
+      -9px -9px 22px var(--neu-light);
+  }
+}
+
+/*
+ * Engraved line art. A hard 1px stroke is the one sharp thing left in a
+ * soft system; a light lower-right offset makes the line read as cut into
+ * the surface rather than drawn on top of it.
+ */
+.neu-engraved {
+  filter: drop-shadow(1px 1px 0 var(--neu-light));
+}
+
+/*
+ * A hairline groove standing in for a divider. Neumorphism has no hard
+ * rules, so a 1px inset seam separates without introducing a second
+ * visual metaphor.
+ */
+.neu-groove {
+  height: 2px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-background);
+  box-shadow:
+    inset 1px 1px 2px var(--neu-dark),
+    inset -1px -1px 2px var(--neu-light);
+}
+
+/*
+ * The app-wide card. Defined in terms of the elevation scale rather than
+ * its own shadow so that every existing `className="surface"` in the
+ * codebase became neumorphic at once, with no component edits and no
+ * find-and-replace across .tsx files.
+ */
+.surface {
+  background: var(--color-card);
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    5px 5px 12px var(--neu-dark),
+    -5px -5px 12px var(--neu-light);
+}
+
 /* --- Typography roles ---------------------------------------------- */
 
-/* Display: the style calls for 32px+. Fluid so it never overflows 375px. */
 .display {
   font-family: var(--font-display);
   font-weight: 700;
-  line-height: 1.04;
+  line-height: 1.02;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
@@ -187,7 +324,6 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Small caps metadata. UI sans, not the reading serif. */
 .eyebrow {
   font-family: var(--font-ui);
   font-size: 0.75rem;
@@ -200,14 +336,12 @@ body {
   font-family: var(--font-ui);
 }
 
-/* Tabular figures wherever numbers sit in a column or tick down. */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Blocks --------------------------------------------------------- */
+/* --- Blocks -------------------------------------------------------- */
 
-/* The style's signature: full-bleed colour blocks with generous gaps. */
 .block-section {
   padding-block: var(--block-gap);
 }
@@ -218,15 +352,8 @@ body {
   }
 }
 
-.surface {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-}
-
-/* --- Motion-Driven: scroll reveal ----------------------------------- *
- * Entrance is driven by an IntersectionObserver adding [data-visible].
- * The element is visible by default and only hidden once the observer
+/* --- Scroll reveal -------------------------------------------------- *
+ * The element is visible by default and is only hidden once an observer
  * has claimed it, so content is never trapped invisible if JS fails.
  */
 [data-reveal] {
@@ -246,7 +373,6 @@ body {
   transform: none;
 }
 
-/* Reduced motion keeps the fade, drops the travel (§7 reduced-motion). */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal][data-armed] {
     transform: none;
@@ -262,17 +388,34 @@ body {
   }
 }
 
-/* --- Focus: never removed, always visible (§1 focus-states) --------- */
+/* --- Focus: never removed, always visible -------------------------- *
+ * Doubly important here: in a system with no hard edges, an outline is
+ * the only thing that can show where the keyboard is.
+ */
 :focus-visible {
   outline: 3px solid var(--color-ring);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
 
-/* Forced colours: drop decorative fills, let the OS palette through. */
+/*
+ * Forced colours: the extrusion is decoration and is dropped entirely,
+ * with real borders taking over. Without this every surface in the app
+ * would become an invisible rectangle on the user's own background.
+ */
 @media (forced-colors: active) {
+  .neu-e1,
+  .neu-e2,
+  .neu-e3,
+  .neu-pressed,
   .surface {
+    box-shadow: none;
     border: 1px solid CanvasText;
+  }
+
+  .neu-groove {
+    box-shadow: none;
+    border-top: 1px solid CanvasText;
   }
 }
 

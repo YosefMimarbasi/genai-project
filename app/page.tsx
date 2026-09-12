@@ -56,7 +56,7 @@ function SportCard({ sport, index }: { sport: Sport; index: number }) {
   const residents = venues.filter((v) => v.access === "residents");
 
   return (
-    <Reveal as="li" index={index} className="surface group flex flex-col p-6 shadow-[var(--shadow-1)] transition-shadow duration-[var(--dur-base)] hover:shadow-[var(--shadow-2)]">
+    <Reveal as="li" index={index} className="surface neu-lift group flex flex-col p-6">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="title text-xl">{sport}</h3>
         <span className="eyebrow tnum text-[var(--color-muted-foreground)]">
@@ -110,9 +110,14 @@ export default function LandingPage() {
                 A game.
                 <br />
                 In the next{" "}
-                <span className="relative inline-block">
-                  {/* The energetic accent, used as a highlight block rather
-                      than as text colour — ink on lime is 13:1. */}
+                {/*
+                  The word sets its own colour rather than inheriting the
+                  heading's. The highlight block stays lime in both themes,
+                  so the text on top of it must stay ink in both themes —
+                  inheriting meant it turned light in dark mode and sat at
+                  about 1.3:1 on the lime, which is unreadable.
+                */}
+                <span className="relative inline-block text-[var(--color-on-accent)]">
                   <span
                     aria-hidden
                     className="absolute inset-x-[-0.15em] bottom-[0.08em] top-[0.18em] -z-10 -rotate-1 rounded-[var(--radius-sm)] bg-[var(--color-accent)]"
@@ -164,7 +169,7 @@ export default function LandingPage() {
                   as="li"
                   key={feature.title}
                   index={i}
-                  className="surface p-6 shadow-[var(--shadow-1)]"
+                  className="surface p-6"
                 >
                   <span
                     aria-hidden
@@ -234,7 +239,7 @@ export default function LandingPage() {
                 <Reveal
                   key={tier}
                   index={i}
-                  className="surface flex flex-col gap-1 p-5 shadow-[var(--shadow-1)]"
+                  className="surface flex flex-col gap-1 p-5"
                 >
                   <dt className="display tnum text-4xl text-[var(--color-primary)]">{tier}</dt>
                   <dd className="ui-text text-sm font-medium">{TIER_LABELS[tier]}</dd>
