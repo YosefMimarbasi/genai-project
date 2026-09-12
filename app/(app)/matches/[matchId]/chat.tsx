@@ -28,6 +28,12 @@ interface SendResult {
   scheduleSuggestion: ScheduleSuggestion | null;
 }
 
+interface ScheduleResult {
+  id: string;
+  agreedTime: string;
+  agreedLocation: string;
+}
+
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     weekday: "short",
@@ -40,6 +46,13 @@ function formatWhen(iso: string): string {
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/** A suggestion is only confirmable when all three parts are present. */
+function isComplete(
+  s: ScheduleSuggestion | null
+): s is ScheduleSuggestion & { date: string; time: string; court: string } {
+  return Boolean(s?.hasProposal && s.date && s.time && s.court);
 }
 
 export function Chat({
@@ -58,7 +71,11 @@ export function Chat({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [suggestion, setSuggestion] = useState<ScheduleSuggestion | null>(null);
+  // The server handed us the plan as it stands; confirming a new one
+  // updates it in place rather than forcing a reload.
+  const [plan, setPlan] = useState({ time: agreedTime, location: agreedLocation });
   const listRef = useRef<HTMLDivElement>(null);
 
   // scrollIntoView breaks scrolling in embedded preview frames — set
@@ -103,17 +120,60 @@ export function Chat({
     }
   }
 
+  async function handleConfirm() {
+    if (!isComplete(suggestion)) return;
+
+    setConfirming(true);
+    try {
+      const result = await apiFetchJson<ScheduleResult>(`/api/matches/${matchId}/schedule`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          date: suggestion.date,
+          time: suggestion.time,
+          court: suggestion.court,
+        }),
+      });
+
+      setPlan({ time: result.agreedTime, location: result.agreedLocation });
+      setSuggestion(null);
+      toast.success("Locked in.");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Couldn't confirm that. Try again.");
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  const complete = isComplete(suggestion);
+
   return (
     <section className="flex min-h-[calc(100dvh-8.5rem)] flex-col py-6">
       <header className="pb-6">
-        <Link href="/matches" className="eyebrow text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
+        <Link
+          href="/matches"
+          className="eyebrow text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+        >
           All matches
         </Link>
-        <h1 className="title mt-4 text-[clamp(1.75rem,5vw,2.75rem)]">{agreedLocation}</h1>
-        <p className="eyebrow mt-2 text-[var(--color-primary)]">{formatWhen(agreedTime)}</p>
+        <h1 className="title mt-4 text-[clamp(1.75rem,5vw,2.75rem)]">{plan.location}</h1>
+        {/* aria-live so a confirmed change is announced, not just repainted. */}
+        <p className="eyebrow mt-2 text-[var(--color-primary)]" aria-live="polite">
+          {formatWhen(plan.time)}
+        </p>
       </header>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto py-8">
+      {/*
+        role="log" + aria-live: messages arrive over a realtime channel
+        with no user action behind them, so without this a screen-reader
+        user simply never learns the other person replied.
+      */}
+      <div
+        ref={listRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Messages"
+        className="flex-1 overflow-y-auto py-8"
+      >
         {messages.length === 0 ? (
           <p className="max-w-[40ch] text-[1.0625rem] leading-[1.5] text-[var(--color-muted-foreground)]">
             You matched. Say hi and sort out exactly when and where.
@@ -132,9 +192,9 @@ export function Chat({
                   </span>
                   <p
                     className={cn(
- "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
+                      "max-w-[46ch] rounded-[var(--radius-lg)] px-4 py-3 text-[0.9375rem] leading-[1.5]",
                       mine
-                        ? "bg-[var(--color-primary)] text-white "
+                        ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
                         : "surface"
                     )}
                   >
@@ -148,35 +208,60 @@ export function Chat({
       </div>
 
       {suggestion?.hasProposal ? (
-        <div className="surface mb-4 rounded-[var(--radius-lg)] p-4">
+        <div
+          role="status"
+          className="surface mb-4 rounded-[var(--radius-lg)] border-2 border-[var(--color-border-strong)] p-4"
+        >
           <p className="eyebrow text-[var(--color-primary)]">Detected in that message</p>
           <p className="mt-2 text-[0.9375rem] font-bold">
             {[suggestion.date, suggestion.time, suggestion.court].filter(Boolean).join(" · ")}
           </p>
-          {/*
-            Honest placeholder, not a fake control: confirming a suggestion
-            needs PATCH /api/matches/[matchId]/schedule, which doesn't exist
-            yet (see docs/frontend-build-prompt.md). A button that 404s
-            would be worse than saying so.
-          */}
-          <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
-            Confirming this into the match isn't wired up yet; the backend route is still to be
-            built. For now, agree in the thread.
-          </p>
+
+          {complete ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button size="sm" onClick={handleConfirm} loading={confirming}>
+                Confirm this plan
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSuggestion(null)}
+                disabled={confirming}
+              >
+                Not this
+              </Button>
+            </div>
+          ) : (
+            /* Partial reads stay read-only: confirming needs a date, a
+               time and a court, and guessing the missing one would put a
+               plan on the match that neither person agreed to. */
+            <p className="ui-text mt-2 text-xs text-[var(--color-muted-foreground)]">
+              Say the day, the time and the court in one message and you can confirm it here.
+            </p>
+          )}
         </div>
       ) : null}
 
       <form onSubmit={handleSend} className="flex gap-3 pt-5">
+        <label htmlFor="chat-message" className="sr-only">
+          Message
+        </label>
         <input
+          id="chat-message"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Say when works…"
-          aria-label="Message"
+          autoComplete="off"
           className={cn(
- "surface h-12 flex-1 rounded-[var(--radius-md)] px-4 text-sm text-[var(--color-foreground)]",
- "outline-none transition-shadow duration-150 ease-[var(--ease-out)]",
- "focus:ring-2 focus:ring-[var(--color-primary)]",
- "placeholder:"
+            "h-12 flex-1 rounded-[var(--radius-md)] px-4 text-base",
+            "bg-[var(--color-card)] text-[var(--color-foreground)]",
+            // The border *is* the affordance here, so it uses the
+            // 3:1 token (WCAG 1.4.11), not the decorative one.
+            "border-2 border-[var(--color-border-strong)]",
+            "transition-colors duration-[var(--dur-base)] ease-[var(--ease-out)]",
+            "hover:border-[var(--color-foreground)]",
+            "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ring)]",
+            "placeholder:text-[var(--color-muted-foreground)]"
           )}
         />
         <Button type="submit" loading={sending} disabled={!draft.trim()}>
