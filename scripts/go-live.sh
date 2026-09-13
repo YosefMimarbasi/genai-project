@@ -111,13 +111,57 @@ echo "     done (.env.local is gitignored)"
 # --- 2. schema -----------------------------------------------------------
 
 echo
-bold "2/5  Pushing the schema to Supabase"
-echo "     This needs your database password (Settings -> Database)."
+bold "2/5  Schema"
 echo "     Five migrations: tables, RLS, matching functions, realtime,"
 echo "     and the self-healing expiry + schedule function."
 echo
-npx supabase link --project-ref "$PROJECT_REF"
-npx supabase db push
+echo "     If you already pasted scripts/schema.sql into the Supabase SQL"
+echo "     Editor, answer y and this step is skipped."
+echo
+read -rp "     Schema already applied? [y/N] " SCHEMA_DONE
+
+case "$SCHEMA_DONE" in
+  [Yy]*)
+    echo "     skipped"
+    ;;
+  *)
+    echo
+    echo "     Paste your database connection string:"
+    echo "       Supabase -> Settings -> Database -> Connection string -> URI"
+    echo "     It looks like postgresql://postgres...@...supabase.com:5432/postgres"
+    echo "     and contains your password, so it is not echoed."
+    echo
+    echo "     Use the SESSION pooler (port 5432), not transaction mode"
+    echo "     (6543) — migrations need session-level features that the"
+    echo "     transaction pooler does not support."
+    echo
+    # `supabase link` is deliberately not used: it authenticates against
+    # the Supabase management API and fails with
+    # LegacyPlatformAuthRequiredError unless you have separately run
+    # `supabase login`, which is a browser OAuth round trip. Pushing to a
+    # connection string talks to Postgres directly and needs no account
+    # login at all.
+    read -rsp "     Connection string: " DB_URL_IN; echo
+    [ -n "$DB_URL_IN" ] || fail "Connection string is required (or answer y to skip)."
+
+    case "$DB_URL_IN" in
+      postgresql://*|postgres://*) ;;
+      *) fail "That should start with postgresql://" ;;
+    esac
+    case "$DB_URL_IN" in
+      *:6543/*) warn "     That's the transaction pooler (6543). Migrations usually need 5432." ;;
+    esac
+    # A literal [YOUR-PASSWORD] is what the dashboard shows before you
+    # substitute your own; pushing it would fail with a confusing auth error.
+    case "$DB_URL_IN" in
+      *'[YOUR-PASSWORD]'*|*'[your-password]'*)
+        fail "Replace [YOUR-PASSWORD] in that string with your actual database password." ;;
+    esac
+
+    echo
+    npx supabase db push --db-url "$DB_URL_IN"
+    ;;
+esac
 
 # --- 3. vercel env -------------------------------------------------------
 
