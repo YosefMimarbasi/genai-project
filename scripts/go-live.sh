@@ -30,6 +30,19 @@ cd "$(dirname "$0")/.."
 
 [ -f package.json ] || fail "Run this from the repo (couldn't find package.json)."
 
+# Preflight the Vercel login before asking for anything.
+#
+# This used to surface at stage 3/5 — after four secrets had been typed
+# and written to disk — because that is the first point the CLI is
+# called. Discovering it here instead costs nothing.
+if ! npx vercel whoami >/dev/null 2>&1; then
+  fail "Not logged in to Vercel.
+
+  Run:  npx vercel login
+
+  A browser opens; approve it, then run this script again."
+fi
+
 bold "Cornell Racket Queue — go live"
 echo
 echo "From your Supabase project's Settings -> API page:"
@@ -48,7 +61,50 @@ echo
 echo "Nothing you type is echoed or logged."
 echo
 
+# --- reuse ---------------------------------------------------------------
+#
+# An earlier run may have written .env.local before failing at a later
+# stage. Making someone retype four secrets to recover from that is pure
+# friction, so offer to reuse them — but only when all six are present
+# and none still looks like a placeholder.
+
+REUSED=0
+
+env_complete() {
+  [ -f .env.local ] || return 1
+  local n
+  for n in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_URL \
+           SUPABASE_SERVICE_ROLE_KEY ANTHROPIC_API_KEY CRON_SECRET; do
+    grep -qE "^${n}=.+" .env.local || return 1
+  done
+  ! grep -qiE "^[A-Z0-9_]+=.*(placeholder|changeme|your[-_])" .env.local
+}
+
+if env_complete; then
+  bold "Found a complete .env.local from an earlier run."
+  read -rp "Reuse those values instead of retyping? [Y/n] " USE_EXISTING
+  case "$USE_EXISTING" in
+    [Nn]*) ;;
+    *)
+      set -a
+      # shellcheck disable=SC1091
+      . ./.env.local
+      set +a
+      SUPABASE_URL_IN="$NEXT_PUBLIC_SUPABASE_URL"
+      ANON_KEY_IN="$NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      SERVICE_KEY_IN="$SUPABASE_SERVICE_ROLE_KEY"
+      ANTHROPIC_KEY_IN="$ANTHROPIC_API_KEY"
+      CRON_SECRET_IN="$CRON_SECRET"
+      REUSED=1
+      echo "  reusing .env.local"
+      echo
+      ;;
+  esac
+fi
+
 # --- collect -------------------------------------------------------------
+
+if [ "$REUSED" = "0" ]; then
 
 read -rp "Supabase Project URL: " SUPABASE_URL_IN
 [ -n "$SUPABASE_URL_IN" ] || fail "Project URL is required."
@@ -81,11 +137,6 @@ read -rsp "Anthropic API key: " ANTHROPIC_KEY_IN; echo
 # Cron and this app, so it only has to be long and random.
 CRON_SECRET_IN="$(node -e 'console.log(require("crypto").randomBytes(32).toString("base64url"))')"
 
-# The project ref is the first label of the Supabase hostname.
-PROJECT_REF="$(printf '%s' "$SUPABASE_URL_IN" | sed -E 's#^https://([^.]+)\..*#\1#')"
-echo
-bold "Project ref: $PROJECT_REF"
-
 # Refuse to proceed with the very placeholders this script exists to
 # replace — otherwise it would cheerfully "succeed" and change nothing.
 for v in "$SUPABASE_URL_IN" "$ANON_KEY_IN" "$SERVICE_KEY_IN" "$ANTHROPIC_KEY_IN"; do
@@ -93,6 +144,14 @@ for v in "$SUPABASE_URL_IN" "$ANON_KEY_IN" "$SERVICE_KEY_IN" "$ANTHROPIC_KEY_IN"
     *placeholder*|*changeme*|*your-*) fail "That's a placeholder value, not a real one." ;;
   esac
 done
+
+fi  # end of the typed-input path
+
+# Derived after both paths converge, so it is always set — `set -u` would
+# abort on the reuse path if this lived inside the block above.
+PROJECT_REF="$(printf '%s' "$SUPABASE_URL_IN" | sed -E 's#^https://([^.]+)\..*#\1#')"
+echo
+bold "Project ref: $PROJECT_REF"
 
 # --- 1. local env --------------------------------------------------------
 
