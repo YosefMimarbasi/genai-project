@@ -37,10 +37,13 @@ echo "  * Project URL       https://<ref>.supabase.co"
 echo "  * Publishable key   sb_publishable_...  (older projects: 'anon')"
 echo "  * Secret key        sb_secret_...       (older projects: 'service_role')"
 echo
-echo "The secret key bypasses Row Level Security, so it is server-only and"
-echo "never reaches the browser. If you have pasted it anywhere it does not"
-echo "belong, roll it in the dashboard first and use the new one here."
-echo "and an Anthropic API key from console.anthropic.com."
+echo
+echo "And an Anthropic API key from console.anthropic.com."
+echo
+echo "The Supabase secret key bypasses Row Level Security, so it is"
+echo "server-only and never reaches the browser. If you have pasted either"
+echo "secret anywhere it does not belong, roll it in the dashboard first"
+echo "and use the new value here."
 echo
 echo "Nothing you type is echoed or logged."
 echo
