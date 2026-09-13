@@ -32,10 +32,14 @@ cd "$(dirname "$0")/.."
 
 bold "Cornell Racket Queue — go live"
 echo
-echo "You'll need, from your Supabase project's Settings -> API page:"
-echo "  * Project URL            (https://<ref>.supabase.co)"
-echo "  * anon / public key"
-echo "  * service_role key       (secret — never goes in the browser)"
+echo "From your Supabase project's Settings -> API page:"
+echo "  * Project URL       https://<ref>.supabase.co"
+echo "  * Publishable key   sb_publishable_...  (older projects: 'anon')"
+echo "  * Secret key        sb_secret_...       (older projects: 'service_role')"
+echo
+echo "The secret key bypasses Row Level Security, so it is server-only and"
+echo "never reaches the browser. If you have pasted it anywhere it does not"
+echo "belong, roll it in the dashboard first and use the new one here."
 echo "and an Anthropic API key from console.anthropic.com."
 echo
 echo "Nothing you type is echoed or logged."
@@ -50,11 +54,22 @@ case "$SUPABASE_URL_IN" in
   *) fail "That doesn't look like a URL (expected https://<ref>.supabase.co)." ;;
 esac
 
-read -rsp "Supabase anon key: " ANON_KEY_IN; echo
-[ -n "$ANON_KEY_IN" ] || fail "anon key is required."
+read -rsp "Supabase publishable (anon) key: " ANON_KEY_IN; echo
+[ -n "$ANON_KEY_IN" ] || fail "Publishable key is required."
 
-read -rsp "Supabase service_role key: " SERVICE_KEY_IN; echo
-[ -n "$SERVICE_KEY_IN" ] || fail "service_role key is required."
+read -rsp "Supabase secret (service_role) key: " SERVICE_KEY_IN; echo
+[ -n "$SERVICE_KEY_IN" ] || fail "Secret key is required."
+
+# The two Supabase keys are easy to transpose, and getting it wrong is not
+# a loud failure: the publishable key in the server slot means every
+# privileged query quietly returns nothing, while the secret key in the
+# public slot ships an RLS bypass to every visitor's browser.
+case "$ANON_KEY_IN" in
+  sb_secret_*) fail "That's the SECRET key in the publishable slot. Swap them." ;;
+esac
+case "$SERVICE_KEY_IN" in
+  sb_publishable_*) fail "That's the PUBLISHABLE key in the secret slot. Swap them." ;;
+esac
 
 read -rsp "Anthropic API key: " ANTHROPIC_KEY_IN; echo
 [ -n "$ANTHROPIC_KEY_IN" ] || fail "Anthropic key is required."
