@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { hasRealEnv } from "@/lib/env";
 
 // This is a real integration test against a running Supabase instance
 // (`supabase start`) — it's the only way to actually exercise the
@@ -24,7 +25,12 @@ import { randomUUID } from "node:crypto";
 // bob) that are both compatible with it, and assert exactly one of them
 // claims it.
 
-const hasLiveSupabase = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+// Presence is not enough: CI sets placeholder values so the build can
+// import modules that read env at module scope, and a plain truthiness
+// check made this suite try to create users against
+// https://placeholder.supabase.co. hasRealEnv rejects stand-in values,
+// and is the same predicate /api/health uses.
+const hasLiveSupabase = hasRealEnv("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY");
 
 describe.skipIf(!hasLiveSupabase)("ready_up concurrency (requires a running local Supabase)", () => {
   let client: SupabaseClient;

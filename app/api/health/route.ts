@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service-client";
+import { isPlaceholderValue } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -13,24 +14,12 @@ const REQUIRED = [
 ] as const;
 
 /**
- * A value that is present but obviously not real. The deploy was live for
- * days with every variable set to a literal "placeholder-..." string,
- * which meant a presence check passed while every signed-in feature
- * returned a 500. Checking for the placeholder shape is what makes this
- * endpoint able to tell "configured" from "merely populated".
- */
-function looksUnset(value: string | undefined): boolean {
-  if (!value) return true;
-  return /placeholder|changeme|your[-_]|example\.com|^<.*>$/i.test(value);
-}
-
-/**
  * Deployment readiness, not a data endpoint. Returns booleans and names
  * that are already public in .env.example — never a value, a prefix, or a
  * length, so this stays safe to leave open.
  */
 export async function GET() {
-  const missing = REQUIRED.filter((name) => looksUnset(process.env[name]));
+  const missing = REQUIRED.filter((name) => isPlaceholderValue(process.env[name]));
 
   let database: "ok" | "unreachable" | "not_configured" = "not_configured";
   let schema: "ok" | "missing_functions" | "unknown" = "unknown";
