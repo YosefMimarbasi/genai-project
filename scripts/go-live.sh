@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+#
+# Takes the deployment from "built but unconfigured" to "working".
+#
+# Everything this does, you could do by hand from the README. It exists
+# because the by-hand version is fifteen steps with two traps in it: the
+# NEXT_PUBLIC_* pair is compiled into the browser bundle, so setting it
+# without rebuilding changes nothing a visitor can see; and Vercel's CLI
+# will not overwrite a variable that already exists, so the placeholders
+# currently in place have to be removed first, not just re-added.
+#
+# Secrets are read with `read -rs`, never echoed, never written to the
+# shell history, and never passed as command-line arguments (which would
+# be visible in the process list). They go to disk only in .env.local,
+# which is gitignored, and to Vercel over stdin.
+#
+# Safe to re-run. Every step is idempotent.
+#
+# Usage:  bash scripts/go-live.sh
+
+set -euo pipefail
+
+APP_URL="https://cornell-paddle-match.vercel.app"
+
+bold() { printf '\033[1m%s\033[0m\n' "$1"; }
+warn() { printf '\033[33m%s\033[0m\n' "$1"; }
+fail() { printf '\033[31m%s\033[0m\n' "$1" >&2; exit 1; }
+
+cd "$(dirname "$0")/.."
+
+[ -f package.json ] || fail "Run this from the repo (couldn't find package.json)."
+
+bold "Cornell Racket Queue — go live"
+echo
+echo "You'll need, from your Supabase project's Settings -> API page:"
+echo "  * Project URL            (https://<ref>.supabase.co)"
+echo "  * anon / public key"
+echo "  * service_role key       (secret — never goes in the browser)"
+echo "and an Anthropic API key from console.anthropic.com."
+echo
+echo "Nothing you type is echoed or logged."
+echo
+
+# --- collect -------------------------------------------------------------
+
+read -rp "Supabase Project URL: " SUPABASE_URL_IN
+[ -n "$SUPABASE_URL_IN" ] || fail "Project URL is required."
+case "$SUPABASE_URL_IN" in
+  https://*) ;;
+  *) fail "That doesn't look like a URL (expected https://<ref>.supabase.co)." ;;
+esac
+
+read -rsp "Supabase anon key: " ANON_KEY_IN; echo
+[ -n "$ANON_KEY_IN" ] || fail "anon key is required."
+
+read -rsp "Supabase service_role key: " SERVICE_KEY_IN; echo
+[ -n "$SERVICE_KEY_IN" ] || fail "service_role key is required."
+
+read -rsp "Anthropic API key: " ANTHROPIC_KEY_IN; echo
+[ -n "$ANTHROPIC_KEY_IN" ] || fail "Anthropic key is required."
+
+# Generated rather than asked for: it is a shared secret between Vercel
+# Cron and this app, so it only has to be long and random.
+CRON_SECRET_IN="$(node -e 'console.log(require("crypto").randomBytes(32).toString("base64url"))')"
+
+# The project ref is the first label of the Supabase hostname.
+PROJECT_REF="$(printf '%s' "$SUPABASE_URL_IN" | sed -E 's#^https://([^.]+)\..*#\1#')"
+echo
+bold "Project ref: $PROJECT_REF"
+
+# Refuse to proceed with the very placeholders this script exists to
+# replace — otherwise it would cheerfully "succeed" and change nothing.
+for v in "$SUPABASE_URL_IN" "$ANON_KEY_IN" "$SERVICE_KEY_IN" "$ANTHROPIC_KEY_IN"; do
+  case "$(printf '%s' "$v" | tr '[:upper:]' '[:lower:]')" in
+    *placeholder*|*changeme*|*your-*) fail "That's a placeholder value, not a real one." ;;
+  esac
+done
+
+# --- 1. local env --------------------------------------------------------
+
+echo
+bold "1/5  Writing .env.local"
+cat > .env.local <<ENVFILE
+NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL_IN
+NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY_IN
+SUPABASE_URL=$SUPABASE_URL_IN
+SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY_IN
+ANTHROPIC_API_KEY=$ANTHROPIC_KEY_IN
+CRON_SECRET=$CRON_SECRET_IN
+ENVFILE
+echo "     done (.env.local is gitignored)"
+
+# --- 2. schema -----------------------------------------------------------
+
+echo
+bold "2/5  Pushing the schema to Supabase"
+echo "     This needs your database password (Settings -> Database)."
+echo "     Five migrations: tables, RLS, matching functions, realtime,"
+echo "     and the self-healing expiry + schedule function."
+echo
+npx supabase link --project-ref "$PROJECT_REF"
+npx supabase db push
+
+# --- 3. vercel env -------------------------------------------------------
+
+echo
+bold "3/5  Setting the six variables on Vercel"
+
+set_env() {
+  local name="$1" value="$2"
+  # Remove first: `vercel env add` will not replace an existing value,
+  # and all six currently hold placeholders.
+  npx vercel env rm "$name" production --yes >/dev/null 2>&1 || true
+  printf '%s' "$value" | npx vercel env add "$name" production >/dev/null
+  echo "     set $name"
+}
+
+set_env NEXT_PUBLIC_SUPABASE_URL      "$SUPABASE_URL_IN"
+set_env NEXT_PUBLIC_SUPABASE_ANON_KEY "$ANON_KEY_IN"
+set_env SUPABASE_URL                  "$SUPABASE_URL_IN"
+set_env SUPABASE_SERVICE_ROLE_KEY     "$SERVICE_KEY_IN"
+set_env ANTHROPIC_API_KEY             "$ANTHROPIC_KEY_IN"
+set_env CRON_SECRET                   "$CRON_SECRET_IN"
+
+# --- 4. redeploy ---------------------------------------------------------
+
+echo
+bold "4/5  Redeploying"
+echo "     Required, not optional: NEXT_PUBLIC_* values are compiled into"
+echo "     the browser bundle, so without a rebuild every visitor keeps"
+echo "     getting the old ones."
+npx vercel deploy --prod --yes
+
+# --- 5. verify -----------------------------------------------------------
+
+echo
+bold "5/5  Verifying"
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+  BODY="$(curl -fsS "$APP_URL/api/health" 2>/dev/null || true)"
+  case "$BODY" in
+    *'"ok":true'*)
+      echo
+      bold "Live. $APP_URL"
+      echo "$BODY"
+      echo
+      echo "Next: sign up with a @cornell.edu address. If the confirmation"
+      echo "email never arrives, turn off Supabase Auth -> Providers ->"
+      echo "Email -> 'Confirm email' — the built-in SMTP is rate limited to"
+      echo "a few messages an hour."
+      exit 0
+      ;;
+  esac
+  echo "     not ready yet (attempt $attempt/10)"
+  sleep 6
+done
+
+echo
+warn "Health check still failing. What it says:"
+curl -fsS "$APP_URL/api/health" || true
+echo
+echo "Read it as:"
+echo "  unsetOrPlaceholder non-empty -> a variable didn't take; re-run."
+echo "  database: unreachable        -> URL or service_role key is wrong."
+echo "  schema: missing_functions    -> 'npx supabase db push' didn't apply."
+exit 1
