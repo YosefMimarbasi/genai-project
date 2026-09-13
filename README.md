@@ -1,143 +1,269 @@
 # Cornell Racket Queue
 
-Say you're free, get matched with another Cornell student at your level
-who's free in the same window, play the same day.
+**Say you're free. Get matched with another Cornell student at your level who's
+free in the same window. Play the same day.**
 
-Next.js 16 App Router (deployed as Vercel Functions) + Supabase
-(Postgres, Auth, Realtime — no Edge Functions, one deploy target).
+Pickup racket sports on campus fail on coordination, not interest. Group chats
+are full of "anyone free later?" that never resolves, because saying yes costs
+something and nobody wants to be first. This turns that into a queue: you
+declare a window, the system finds someone compatible, and both sides commit
+inside ninety seconds or it's off.
 
-Live: https://cornell-paddle-match.vercel.app
+[**Live**](https://cornell-paddle-match.vercel.app) ·
+[Demo video](docs/media/demo.mp4) ·
+[Schema contract](docs/schema-contract.md)
+
+![CI](https://github.com/YosefMimarbasi/genai-project/actions/workflows/ci.yml/badge.svg)
+
+---
+
+<p align="center">
+  <img src="docs/media/landing.png" width="49%" alt="Landing page">
+  <img src="docs/media/ready-up.png" width="49%" alt="The ready-up form, with courts selected">
+</p>
+<p align="center">
+  <img src="docs/media/proposal.png" width="49%" alt="A match proposal with a 90-second countdown">
+  <img src="docs/media/chat-schedule.png" width="49%" alt="Chat with an extracted schedule proposal and a confirm chip">
+</p>
+
+## How it works
+
+1. **Ready up.** Sport, skill tier, how long you're free, which courts you'd
+   walk to, casual or competitive.
+2. **Get matched.** The queue looks for someone in the same sport and intensity,
+   within one tier, with an overlapping time window and at least one shared
+   court.
+3. **Both accept, within 90 seconds.** If either declines or the clock runs out,
+   both go back in the queue. A match that needs chasing isn't a match.
+4. **Sort out the details in chat**, and confirm a time and court onto the
+   match.
+
+## The two LLM integrations
+
+Both use **forced tool use** — the model is required to call a named tool with a
+typed schema, never to emit free-form text that gets parsed afterwards. Both
+also assume the model can be wrong, and are built so that being wrong is
+survivable.
+
+### Skill-tier normalisation
+
+People describe how they play in prose: *"played JV in high school, still hit a
+few times a month."* Matching needs a 1–5 tier. The model returns
+`{tier, confidence, rationale}` against a strict schema.
+
+The design decision worth pointing at is the **confidence floor**. Below 0.6,
+nothing is written — the UI shows a manual tier picker instead of silently
+recording a guess. A wrong tier doesn't produce a wrong string on a screen; it
+produces a real person driving across campus to play someone two levels off.
+The rationale is surfaced so the suggestion can be argued with.
+
+`lib/anthropic/skill-normalizer.ts` · `app/api/onboarding/skill-normalize/route.ts`
+
+### Scheduling extraction
+
+In a confirmed match's chat, *"Thursday 5:30 at Jessup?"* should become a
+confirmable plan. The model extracts `{hasProposal, date, time, court,
+confidence}`.
+
+Three things guard it:
+
+- **A keyword pre-filter runs first.** Most chat messages aren't proposals, so
+  they never reach the model at all. This is a cost and latency decision, not a
+  correctness one.
+- **`court` is constrained to an enum of real Cornell courts in the JSON schema,
+  and re-validated in TypeScript afterwards.** The schema constraint is the
+  first line of defence, not the only one — structural adherence is never fully
+  trusted, and a confirmed match must never come to rest at an invented
+  location.
+- **Extraction never writes.** It produces a suggestion; a human tap calls
+  `PATCH /api/matches/[matchId]/schedule`, which re-validates the court again at
+  the route boundary, because that request arrives from a browser and could
+  carry anything.
+
+The message body is arbitrary user-authored text, so it's held in a delimited
+block within the user turn — nothing inside it can change the instructions, the
+court list, or which tool gets called.
+
+If either call fails, the feature degrades instead of breaking: the message is
+already sent before extraction runs, so an API error is a lost enhancement, not
+a failed send.
+
+`lib/anthropic/schedule-extractor.ts` · `lib/anthropic/schedule-prefilter.ts`
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | Next.js 16, App Router | Server Components for data-dependent screens; one deploy target for UI and API |
+| Language | TypeScript (strict) | — |
+| Database | Supabase Postgres | Row Level Security as the actual authorisation boundary, not an app-layer check |
+| Auth | Supabase Auth | `@cornell.edu`-only, enforced by a database trigger on `auth.users` |
+| Realtime | Supabase Realtime | Match arrival and chat messages arrive as Postgres change events; no polling |
+| LLM | Anthropic API | Forced tool use for both integrations |
+| Styling | Tailwind CSS v4 | Tokens declared in CSS, no config file |
+| UI primitives | Base UI, CVA, sonner | Accessible Select/Field behaviour without adopting a whole design system |
+| Tests | Vitest | 64 tests |
+| CI/CD | GitHub Actions, Vercel | typecheck + tests + build on every push |
+
+Roughly 6,900 lines across 87 source files.
+
+## Architecture
+
+### The interesting problem: two people claiming the same partner
+
+Matching is a race. Two students readying up at the same moment can both see the
+same waiting entry as their best candidate, and a naive read-then-write hands
+that person to both of them.
+
+The whole claim runs as one PL/pgSQL function inside a single transaction:
+
+```sql
+select qe.id into v_candidate_id
+from public.queue_entries qe
+where qe.status = 'waiting'
+  and ...
+order by abs(qe.skill_tier - p_skill_tier) asc, qe.created_at asc
+for update skip locked
+limit 1;
+```
+
+`FOR UPDATE SKIP LOCKED` means two concurrent ready-ups can't even attempt to
+lock the same row — one simply sees it as unavailable and moves on. The
+`WHERE status = 'waiting'` guard on the subsequent `UPDATE` stays as a second,
+independent check. This is a stronger guarantee than sequential guarded updates
+from application code, where the inserted row isn't visible to other
+transactions until commit.
+
+### Expiry without a scheduler
+
+Proposals expire after ~90 seconds. The obvious implementation is a cron job,
+and the first version used one — which broke on Vercel's Hobby plan, where
+sub-daily crons don't run. The failure wasn't cosmetic: abandoned proposals left
+both queue entries stuck at `matched`, invisible to every future match, so the
+candidate pool shrank with each one.
+
+`ready_up()` now sweeps expired proposals opportunistically before looking for a
+candidate. The system heals under exactly the traffic that needs it healed, with
+no scheduler, no external service, and no paid plan. The cron endpoint survives
+as a daily janitor, but correctness no longer depends on it.
+
+### Authorisation
+
+Every table has RLS. Reads are scoped to the rows you participate in — you can't
+read another user's queue entry before a match links you, and you can't read
+messages from a match you're not in.
+
+The operations that legitimately cross users (claiming someone else's queue
+entry) can't be expressed that way, so they're `SECURITY DEFINER` functions,
+each explicitly revoked from `anon` and `authenticated` and callable only by the
+service role. Route handlers establish caller identity from the access token —
+never from a body-supplied user id — and pass it in as an argument.
+
+### Accessibility
+
+WCAG 2.1 AA is the target. Contrast was measured in-browser rather than
+estimated, including the non-text 3:1 requirement for interactive boundaries
+(1.4.11), which matters more than usual because the interface is neumorphic and
+a shadow has no contrast ratio. State is never carried by colour alone. Known
+gaps are listed honestly on [/accessibility](https://cornell-paddle-match.vercel.app/accessibility)
+rather than claiming conformance.
+
+## Testing
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # vitest — 64 tests
+npm run build        # production build
+```
+
+All three run on every push and pull request
+([ci.yml](.github/workflows/ci.yml)).
+
+Unit tests cover the matching logic, both LLM integrations including their
+low-confidence fallback paths, schedule parsing and DST boundary handling, and
+the deployment's security headers. There is also a **pgTAP concurrency test**
+that fires two simultaneous ready-ups at one candidate and asserts exactly one
+wins — it requires a running Postgres and is skipped when one isn't configured.
+
+## Running it
+
+```bash
+npm install
+cp .env.example .env.local   # Supabase + Anthropic credentials
+npm run dev
+```
+
+Deploying a fresh instance is scripted end to end:
+
+```bash
+bash scripts/go-live.sh
+```
+
+It sets the six environment variables, applies migrations, redeploys, and polls
+`/api/health` until the deployment reports itself configured, reachable and
+migrated. [`scripts/schema.sql`](scripts/schema.sql) is the same five migrations
+concatenated for pasting into the Supabase SQL Editor if you'd rather skip the
+CLI.
 
 ## Status
 
-The app is built and deployed. It is **not yet functional in production**:
-all six environment variables on Vercel are still literal
-`placeholder-*` strings, so every signed-in feature fails on submit. The
-public pages (landing, privacy, terms, accessibility) work.
-
-Check at any time:
+The application is built, tested and deployed. **It is not yet connected to a
+live database** — the Supabase project is being provisioned, so signed-in
+features return errors until the six environment variables hold real values. The
+public pages work.
 
 ```bash
 curl -s https://cornell-paddle-match.vercel.app/api/health
 ```
 
-`{"ok":true}` means configured, reachable, and migrated. Anything else
-says which of the three is missing.
+That endpoint distinguishes a variable that is *set* from one set to a
+placeholder, and a database that is *reachable* from one that has actually been
+migrated — a distinction that cost a day when a fully-placeholder deployment
+looked healthy.
 
-### Going live
+### Known gaps
 
-1. Create a Supabase project. From Settings → API take the project URL,
-   the `anon` key and the `service_role` key.
-2. Push the schema (works over the network, no Docker needed):
-   ```bash
-   npx supabase link --project-ref YOUR_PROJECT_REF
-   npx supabase db push
-   ```
-3. Set all six variables on Vercel (`SUPABASE_URL` is the same value as
-   `NEXT_PUBLIC_SUPABASE_URL`; `CRON_SECRET` is any long random string):
-   ```bash
-   npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
-   # ...and the other five
-   ```
-4. **Redeploy.** This is not optional: `NEXT_PUBLIC_*` values are baked
-   into the browser bundle at build time, so changing them without
-   rebuilding leaves the old values shipping to browsers.
-   ```bash
-   npx vercel deploy --prod
-   ```
+- **No Content-Security-Policy.** The App Router emits inline hydration scripts,
+  so a CSP worth having needs per-request nonce plumbing, and a wrong
+  `connect-src` silently stops Realtime from reconnecting. Left out rather than
+  shipped as something that only looks like protection; the other five security
+  headers are set and verified.
+- **The legal pages have had no legal review.** They describe the app's real
+  data flows accurately, which isn't the same as a lawyer signing off.
+- The pgTAP concurrency suite has never run in CI, since it needs a live
+  Postgres.
 
-Supabase turns on email confirmation by default, with a rate-limited
-built-in SMTP (a few messages an hour). For demos, turn off
-Auth → Providers → Email → "Confirm email", or sign-ups will stall.
+## Repository map
 
-## Setup
-
-```bash
-npm install
-cp .env.example .env.local   # fill in Supabase + Anthropic credentials
-npm run dev
+```
+app/
+  (app)/          play, profile, matches — everything behind sign-in
+  (auth)/         sign-in, sign-up
+  (legal)/        privacy, terms, accessibility
+  api/            route handlers (queue, matching, LLM, cron, health)
+components/ui/    Button, Card, Select, TextInput, Textarea, Skeleton…
+lib/
+  anthropic/      the two LLM integrations + the schedule pre-filter
+  matching/       queue and response logic
+  supabase/       browser / server / service-role clients
+  courts.ts       researched Cornell venue data
+supabase/
+  migrations/     schema, RLS policies, matching functions, realtime
+  tests/          pgTAP
+docs/             schema contract, build notes, media
+scripts/          go-live.sh, schema.sql
 ```
 
-| Command | What it does |
-|---|---|
-| `npm run typecheck` | TypeScript, no emit |
-| `npm test` | vitest (unit tests under `tests/`) |
-| `npm run build` | Next.js production build |
+### A note on `lib/courts.ts`
 
-All three run on every push and pull request — see
-[.github/workflows/ci.yml](.github/workflows/ci.yml).
+Venue data is researched rather than invented: which courts host which sport,
+which are open-rec, which are residents-only, and which need a reservation.
+Cornell's dorm game rooms (Bethe, Becker, Mews, Hu Shih) are marked
+residents-only because they are, and Reis Tennis Center is marked as needing a
+reservation rather than being offered as a queueable option. Sources are cited
+in the file header.
 
-## Stack notes
+---
 
-- **Styling**: Tailwind CSS v4, all tokens in `app/globals.css`.
-  Neumorphic surfaces on a warm ground; Cornell Big Red and a court-lime
-  accent; Palatino display with EB Garamond / Crimson Text standing in
-  for Cornell's commercial Freight faces. Shadow carries affordance,
-  colour and borders carry state, so nothing depends on an effect that
-  vanishes under forced-colours.
-- **Auth/session**: `@supabase/ssr` — `lib/supabase/browser-client.ts`
-  (Client Components), `lib/supabase/server-client.ts` (Server
-  Components), `proxy.ts` (session refresh + guarding the signed-in
-  area; Next 16's renamed `middleware.ts`).
-
-  `browser-client.ts` reads its two `NEXT_PUBLIC_*` values as literal
-  static expressions on purpose. Next can only inline them into the
-  browser bundle where the name appears literally, so routing them
-  through a `requireEnv(name)` helper makes every client-side Supabase
-  call throw. Don't refactor those two lines.
-- **UI primitives**: `components/ui/*` (Button via `cva`, Card, TextInput
-  and Select via `@base-ui/react`, Spinner, Skeleton). Toasts via
-  `sonner`.
-- **Data**: `lib/api-client.ts`'s `apiFetchJson` for this repo's own API
-  routes (attaches the session's bearer token, throws a typed
-  `ApiError`); read RLS-scoped tables directly via the Supabase browser
-  client. `hooks/use-realtime-channel.ts` for live Postgres-change
-  subscriptions.
-- **Routes**: `app/(auth)/sign-in`, `app/(auth)/sign-up` (no nav chrome);
-  `app/(app)/*` behind sign-in, wrapped in `components/nav.tsx`; legal
-  pages under `app/(legal)/*`.
-
-## API routes
-
-All routes expect `Authorization: Bearer <supabase access token>` unless
-noted; see `lib/supabase/verify-user.ts`. `/api/*` is excluded from the
-proxy matcher — these authenticate from the token, not a cookie.
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/health` | GET | Deployment readiness. Distinguishes an unset variable from a placeholder, and a reachable database from a migrated one. Booleans and names only, never a value. No auth. |
-| `/api/queue/ready` | POST | Join the queue and atomically match against a compatible waiting entry. Sweeps expired proposals first, so the pool heals itself without a scheduler. |
-| `/api/matches/[matchId]/respond` | POST | Accept or decline a proposed match; creates `confirmed_matches` once both sides accept. Expiry is handled inline, so a stale proposal cannot be accepted. |
-| `/api/matches/[matchId]/messages` | POST | Send a chat message, then (if it passes a cheap keyword pre-filter) run forced-tool-use scheduling extraction and return a `scheduleSuggestion` above confidence 0.6. Never writes to `confirmed_matches` itself. |
-| `/api/matches/[matchId]/schedule` | PATCH | Confirm a time and court into the match. The court is re-validated against `lib/courts.ts` here, because the extractor's schema constraint says nothing about what a browser chose to send. |
-| `/api/onboarding/skill-normalize` | POST | Forced-tool-use call classifying a free-text experience description into a 1–5 tier. Below confidence 0.6 nothing is saved and the client shows a manual picker. |
-| `/api/cron/sweep-expired-matches` | GET | Vercel Cron only (`Authorization: Bearer $CRON_SECRET`). Runs daily as a janitor. Correctness does not depend on it — `ready_up()` sweeps opportunistically — which is what makes this work on a Hobby plan that cannot run sub-daily crons. |
-
-## Data
-
-`lib/courts.ts` holds the real venue list: which courts host which sport,
-which are open-rec, which are residents-only, and which need a
-reservation. It was researched against Cornell recreation pages and
-corrected against on-the-ground knowledge. Sources are cited in the file
-header. Treat it as verified, and re-check hours each semester.
-
-## Schema
-
-Five tables, RLS on all of them, plus `SECURITY DEFINER` functions for
-the operations that legitimately cross users (`ready_up`,
-`respond_to_match`, `update_match_schedule`, `sweep_expired_matches`),
-each revoked from `anon`/`authenticated` and callable only by the service
-role. See [supabase/README.md](supabase/README.md) and
-[docs/schema-contract.md](docs/schema-contract.md).
-
-## Known gaps
-
-- No CSP. The App Router emits inline hydration scripts, so a CSP worth
-  having needs per-request nonce plumbing, and a wrong `connect-src`
-  silently stops Supabase realtime from reconnecting. Left out rather
-  than shipped as something that only looks like protection. Other
-  security headers are set in `next.config.ts`.
-- Auto-deploy is off — the Vercel GitHub App is not authorised for this
-  repo, so deploys are manual (`npx vercel deploy --prod`).
-- The legal pages describe the app's real data flows accurately, but
-  have had no legal review.
+Built by [Yosef Mimarbasi](https://github.com/YosefMimarbasi). Not affiliated
+with or endorsed by Cornell University.
